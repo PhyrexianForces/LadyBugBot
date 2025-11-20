@@ -17,7 +17,7 @@ public class LaunchAction extends SequentialAction {
                         new SetMotorPowerAction(launchMotor1, 1),
                         new SetMotorPowerAction(launchMotor2, -1)
                 ), // start launch motors
-                new SleepAction(1000), // wait for motors to get up to speed
+                new SleepAction(250), // wait for motors to get up to speed
                 new SetServoRotationAction(launchServo, 0), // push artifact into launcher
                 new SleepAction(1000), // wait for ball to launch
                 new SimultaneousAction(

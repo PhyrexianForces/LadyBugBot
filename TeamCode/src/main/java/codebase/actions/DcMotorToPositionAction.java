@@ -45,7 +45,7 @@ public class DcMotorToPositionAction implements Action {
     @Override
     public void loop() {
         double power = pid.getPower();
-
+        System.out.println("pid power: " + power + ", angle dif: " + Angles.angleDifference(motor.getMotorEncoder().getPosition(), targetRotation) + ", servo pos: " + motor.getMotorEncoder().getPosition());
         motor.setPower(power * rotationalSpeed);
     }
 
@@ -53,7 +53,7 @@ public class DcMotorToPositionAction implements Action {
     public boolean isComplete() {
         double rotationalError = Angles.angleDifference(motor.getMotorEncoder().getPosition(), targetRotation);
 
-        if (rotationalError <= maxRotationalError) {
+        if (Math.abs(rotationalError) <= maxRotationalError) {
             motor.setPower(0);
             return true;
         }

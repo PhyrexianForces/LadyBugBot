@@ -13,8 +13,8 @@ import codebase.movement.mecanum.MecanumDriver;
 import codebase.pathing.Localizer;
 
 public class MoveToAction implements Action {
-    private final MecanumDriver driver;
-    private final Localizer localizer;
+    private static MecanumDriver driver;
+    private static Localizer localizer;
 
     private final FieldPosition destination;
 
@@ -35,9 +35,7 @@ public class MoveToAction implements Action {
     private final PIDController yPID;
     private final PIDController directionPID;
 
-    public MoveToAction(MecanumDriver driver, Localizer localizer, FieldPosition destination, double movementSpeed, double rotationalSpeed, double maxDistanceError, double maxRotationalError) {
-        this.driver = driver;
-        this.localizer = localizer;
+    public MoveToAction(FieldPosition destination, double movementSpeed, double rotationalSpeed, double maxDistanceError, double maxRotationalError) {
         this.destination = destination;
         this.movementSpeed = movementSpeed;
         this.rotationalSpeed = rotationalSpeed;
@@ -50,6 +48,11 @@ public class MoveToAction implements Action {
                 DIRECTION_PID_COEFFICIENTS,
                 () -> Angles.angleDifference(localizer.getCurrentPosition().direction, destination.direction)
         );
+    }
+
+    public static void setDriverAndLocalizer(MecanumDriver driver, Localizer localizer) {
+        MoveToAction.driver = driver;
+        MoveToAction.localizer = localizer;
     }
 
     @Override

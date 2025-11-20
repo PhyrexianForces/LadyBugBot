@@ -19,10 +19,10 @@ public class PinpointLocalizer implements Localizer {
      * It can be found by finding the intersection of the two lines made by diagonal wheel pairs.
      *
      * @param pinpointModule The PinPoint device
-     * @param xPodOffsetFromCenter The distance in the x-direction (right is positive) of the forward-backward pod from the robot's center of rotation
-     * @param xDirection The direction the y-pod (which measures delta in the y direction) is oriented
-     * @param yPodOffsetFromCenter The distance in the y-direction (forward is positive) of the right-left pod from the robot's center of rotation
-     * @param yDirection The direction the x-pod (which measures delta in the x direction) is oriented
+     * @param xPodOffsetFromCenter How far sideways (in mm) from the robot center the X (forward) odometry pod is. Left of the center is a positive number, right of center is a negative number
+     * @param xDirection The direction the X-pod (forward) is oriented
+     * @param yPodOffsetFromCenter How far forwards (in mm) from the tracking point the Y (strafe) odometry pod is. forward of center is a positive number, backwards is a negative number
+     * @param yDirection The direction the y-pod (strafe) is oriented
      * @param encoderResolution The number of ticks per mm of the encoders attached to the PinPoint
      */
     public PinpointLocalizer(PinpointModule pinpointModule, double xPodOffsetFromCenter, PinpointModule.EncoderDirection xDirection, double yPodOffsetFromCenter, PinpointModule.EncoderDirection yDirection, double encoderResolution) {
@@ -38,10 +38,10 @@ public class PinpointLocalizer implements Localizer {
      * It can be found by finding the intersection of the two lines made by diagonal wheel pairs.
      *
      * @param pinpointModule The PinPoint device
-     * @param xPodOffsetFromCenter The distance in the x-direction (right is positive) of the forward-backward pod from the robot's center of rotation
-     * @param xDirection The direction the y-pod (which measures delta in the y direction) is oriented
-     * @param yPodOffsetFromCenter The distance in the y-direction (forward is positive) of the right-left pod from the robot's center of rotation
-     * @param yDirection The direction the x-pod (which measures delta in the x direction) is oriented
+     * @param xPodOffsetFromCenter How far sideways (in mm) from the robot center the X (forward) odometry pod is. Left of the center is a positive number, right of center is a negative number
+     * @param xDirection The direction the X-pod (forward) is oriented
+     * @param yPodOffsetFromCenter How far forwards (in mm) from the tracking point the Y (strafe) odometry pod is. forward of center is a positive number, backwards is a negative number
+     * @param yDirection The direction the y-pod (strafe) is oriented
      * @param pods The type of pods you are using
      *
      *             THIS IS NOT DONE // REVISIT X AND Y AS WE SWITCHED TO FTC FIELD COORDINATE SYSTEM

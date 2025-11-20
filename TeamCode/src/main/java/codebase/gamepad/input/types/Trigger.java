@@ -64,6 +64,10 @@ public class Trigger implements GInput, GIsPressed, GIsToggled, GWhileDown<Trigg
         this.wasDownLast = isPressed;
     }
 
+    public double getValue() {
+        return this.valueSupplier.get();
+    }
+
     @Override
     public Gamepad getGamepad() {
         return this.gamepad;
