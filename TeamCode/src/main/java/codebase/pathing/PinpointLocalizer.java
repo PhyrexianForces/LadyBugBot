@@ -28,7 +28,7 @@ public class PinpointLocalizer implements Localizer {
     public PinpointLocalizer(PinpointModule pinpointModule, double xPodOffsetFromCenter, PinpointModule.EncoderDirection xDirection, double yPodOffsetFromCenter, PinpointModule.EncoderDirection yDirection, double encoderResolution) {
         this.pinpointModule = pinpointModule;
         this.pinpointModule.setEncoderResolution(encoderResolution);
-        this.pinpointModule.setOffsets(-xPodOffsetFromCenter * 25.4,yPodOffsetFromCenter * 25.4);
+        this.pinpointModule.setOffsets(xPodOffsetFromCenter,yPodOffsetFromCenter);
         this.pinpointModule.setEncoderDirections(xDirection, yDirection);
     }
 
@@ -38,7 +38,7 @@ public class PinpointLocalizer implements Localizer {
      * It can be found by finding the intersection of the two lines made by diagonal wheel pairs.
      *
      * @param pinpointModule The PinPoint device
-     * @param xPodOffsetFromCenter How far sideways (in mm) from the robot center the X (forward) odometry pod is. Left of the center is a positive number, right of center is a negative number
+     * @param xPodOffsetFromCenter How far left (in mm) from the robot center the X (forward) odometry pod is. Left of the center is a positive number, right of center is a negative number
      * @param xDirection The direction the X-pod (forward) is oriented
      * @param yPodOffsetFromCenter How far forwards (in mm) from the tracking point the Y (strafe) odometry pod is. forward of center is a positive number, backwards is a negative number
      * @param yDirection The direction the y-pod (strafe) is oriented
@@ -49,7 +49,7 @@ public class PinpointLocalizer implements Localizer {
     public PinpointLocalizer(PinpointModule pinpointModule, double xPodOffsetFromCenter, PinpointModule.EncoderDirection xDirection, double yPodOffsetFromCenter, PinpointModule.EncoderDirection yDirection, PinpointModule.GoBildaOdometryPods pods) {
         this.pinpointModule = pinpointModule;
         this.pinpointModule.setEncoderResolution(pods);
-        this.pinpointModule.setOffsets(-xPodOffsetFromCenter * 25.4,yPodOffsetFromCenter * 25.4);
+        this.pinpointModule.setOffsets(xPodOffsetFromCenter,yPodOffsetFromCenter);
         this.pinpointModule.setEncoderDirections(xDirection,yDirection);
     }
 

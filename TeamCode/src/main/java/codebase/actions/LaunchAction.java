@@ -24,7 +24,9 @@ public class LaunchAction extends SequentialAction {
                         new SetMotorPowerAction(launchMotor1, 0),
                         new SetMotorPowerAction(launchMotor2, 0),
                         new SetServoRotationAction(launchServo, 1)
-                ) // stop launcher motors and reset launch servo
+                ), // stop launcher motors and reset launch servo
+                new SleepAction(300), // wait for launch servo to get back to normal position
+                new LaunchUpdateChamberStateAction()
         );
 
         if (launchServo == null || launchMotor1 == null || launchMotor2 == null) {

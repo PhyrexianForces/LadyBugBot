@@ -11,10 +11,12 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.util.concurrent.atomic.AtomicReference;
 
 import codebase.Constants;
+import codebase.actions.Action;
 import codebase.actions.LaunchAction;
 import codebase.actions.RotateRevolverAction;
 import codebase.actions.SimultaneousAction;
 import codebase.actions.TripleIntakeAction;
+import codebase.actions.TripleLaunchAction;
 import codebase.gamepad.Gamepad;
 import codebase.geometry.MovementVector;
 import codebase.hardware.Motor;
@@ -75,33 +77,43 @@ public class CompetitionTeleop extends OpMode {
         RotateRevolverAction.setRevolverMotor(revolverMotor);
         LaunchAction.setLaunchActionMotors(launchServo, launchMotor1, launchMotor2);
 
-        RevolverStorageManager.reset(); // remove this once we have an Auto running first
 
-        gamepad.dpadLeft.onPress(() -> {
-            revolverAction = new RotateRevolverAction(0, getRevolverMode());
-            actionThread.add(revolverAction, true, true);
-        });
 
-        gamepad.dpadUp.onPress(() -> {
-            revolverAction = new RotateRevolverAction(1, getRevolverMode());
-            actionThread.add(revolverAction, true, true);
-        });
 
-        gamepad.dpadRight.onPress(() -> {
-            revolverAction = new RotateRevolverAction(2, getRevolverMode());
-            actionThread.add(revolverAction, true, true);
-        });
+        //  IMPORTANT READ THIS!!!!!!!!!!!!!!
+//        RevolverStorageManager.reset(); // remove this once we have an Auto running first
+
+//        gamepad.dpadLeft.onPress(() -> {
+//            revolverAction = new RotateRevolverAction(0, getRevolverMode());
+//            actionThread.add(revolverAction, true, true);
+//        });
+//
+//        gamepad.dpadUp.onPress(() -> {
+//            revolverAction = new RotateRevolverAction(1, getRevolverMode());
+//            actionThread.add(revolverAction, true, true);
+//        });
+//
+//        gamepad.dpadRight.onPress(() -> {
+//            revolverAction = new RotateRevolverAction(2, getRevolverMode());
+//            actionThread.add(revolverAction, true, true);
+//        });
+
+        RevolverStorageManager.reset();
 
         gamepad.rightTrigger.onPress(() -> {
-            actionThread.add(new LaunchAction(), true);
+            actionThread.add(new TripleLaunchAction(), true, true);
         });
 
-        gamepad.bButton.onPress(() -> {
+        gamepad.leftTrigger.onPress(() -> {
             intakeAction.set(new TripleIntakeAction(intakeMotor, storageColorSensor));
-            actionThread.add(intakeAction.get(), true);
+            actionThread.add(intakeAction.get(), true, true);
         });
 
         runningActionDisplay = telemetry.addData("runningAction", "");
+
+        gamepad.bButton.onRelease(() -> {
+            intakeMotor.setPower(0);
+        });
     }
 
     private RotateRevolverAction.RevolverMode getRevolverMode() {
@@ -113,6 +125,19 @@ public class CompetitionTeleop extends OpMode {
         driver.setRelativePower(new MovementVector(gamepad.leftJoystick.getY(), gamepad.leftJoystick.getX(), gamepad.rightJoystick.getX()));
         gamepad.loop();
         actionThread.loop();
+
+        if (gamepad.bButton.isPressed()) {
+            Action toRemove = null;
+            for (Action action : actionThread.getActions()) {
+                if (action.getClass() == TripleIntakeAction.class) {
+                    toRemove = action;
+                }
+            }
+
+            actionThread.getActions().remove(toRemove);
+
+            intakeMotor.setPower(-1);
+        }
 
         runningActionDisplay.setValue(RevolverStorageManager.getStateOfChamber(0) + ", " + RevolverStorageManager.getStateOfChamber(1) + ", " + RevolverStorageManager.getStateOfChamber(2));
     }

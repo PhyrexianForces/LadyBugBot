@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public abstract class RevolverStorageManager {
 
-    private static ArtifactState[] chamberStates = new ArtifactState[] {ArtifactState.NONE, ArtifactState.NONE, ArtifactState.NONE};
+    private static ArtifactState[] chamberStates = new ArtifactState[] {ArtifactState.PURPLE, ArtifactState.PURPLE, ArtifactState.PURPLE};
 
     public enum ArtifactState {
         PURPLE,
@@ -13,8 +13,16 @@ public abstract class RevolverStorageManager {
     }
 
     /**
-     * Reset the state of the storage
-     * Should ONLY be called in init of the first OpMode to run
+     * Reset the state of the storage for preload
+     * Should ONLY be called in init of the Autonomous
+     */
+    public static void resetFull() {
+        chamberStates = new ArtifactState[] {ArtifactState.PURPLE, ArtifactState.PURPLE, ArtifactState.PURPLE};
+    }
+
+    /**
+     * Reset the state of the storage to empty
+     * Should ONLY be called in init of the Teleop
      */
     public static void reset() {
         chamberStates = new ArtifactState[] {ArtifactState.NONE, ArtifactState.NONE, ArtifactState.NONE};

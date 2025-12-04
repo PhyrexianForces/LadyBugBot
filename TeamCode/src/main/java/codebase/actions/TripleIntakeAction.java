@@ -15,8 +15,10 @@ public class TripleIntakeAction extends SequentialAction {
     private static class SingleIntakeAction extends SequentialAction {
         public SingleIntakeAction(ColorSensor colorSensor) {
             super(
-                new RotateRevolverAction(RotateRevolverAction.getClosestChamberOfState(RevolverStorageManager.ArtifactState.NONE, RotateRevolverAction.RevolverMode.INPUT), RotateRevolverAction.RevolverMode.INPUT),
-                new ColorSensorDistanceAction(colorSensor, 0.6, ColorSensorDistanceAction.DistanceMode.GREATER_THAN_EQUAL_TO),
+                new RotateRevolverAction(
+                        () -> RotateRevolverAction.getClosestChamberOfState(RevolverStorageManager.ArtifactState.NONE, RotateRevolverAction.RevolverMode.INPUT),
+                        RotateRevolverAction.RevolverMode.INPUT
+                ),
                 new ColorSensorDistanceAction(colorSensor, 0.6, ColorSensorDistanceAction.DistanceMode.LESS_THAN_EQUAL_TO),
                 new IntakeUpdateChamberStateAction(colorSensor)
             );
@@ -30,9 +32,10 @@ public class TripleIntakeAction extends SequentialAction {
         }
 
         if (result.isEmpty()) {
-            return null;
+            return new SequentialAction(new EmptyAction());
         }
 
+        result.add(new RotateRevolverAction(RotateRevolverAction.getClosestChamberWithArtifact(RotateRevolverAction.RevolverMode.OUTPUT), RotateRevolverAction.RevolverMode.OUTPUT));
         result.add(new SetMotorPowerAction(intakeMotor, 0));
 
         return new SequentialAction(
