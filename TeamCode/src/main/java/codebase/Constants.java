@@ -15,6 +15,8 @@ public class Constants {
     public static double PINPOINT_X_OFFSET = 0;
     public static double PINPOINT_Y_OFFSET = 0;
 
+    public static double LIMELIGHT_LENS_HEIGHT;
+
     public static final MecanumCoefficientMatrix MECANUM_COEFFICIENT_MATRIX = new MecanumCoefficientMatrix(new MecanumCoefficientSet(-1, 1, -1, -1), ROTATION_RADIUS_IN);
 
     public static class MotorConstants {
