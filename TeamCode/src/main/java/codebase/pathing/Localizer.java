@@ -13,5 +13,5 @@ public interface Localizer extends Loop {
 
     FieldPosition getCurrentPosition();
 
-    void init(FieldPosition initialPosition);
+    void init();
 }

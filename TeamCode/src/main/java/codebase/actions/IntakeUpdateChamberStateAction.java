@@ -1,31 +1,26 @@
 package codebase.actions;
 
+import codebase.Constants;
+import codebase.manipulators.RevolverManipulator;
 import codebase.sensors.ColorSensor;
 import decode.RevolverStorageManager;
 
-public class IntakeUpdateChamberStateAction implements Action {
-
-    private static final double GREEN_THRESHOLD = 0.72;
+public class IntakeUpdateChamberStateAction extends RunOnceAction {
 
     private final ColorSensor colorSensor;
-    private boolean done = false;
+    private final RevolverManipulator revolverManipulator;
 
-    public IntakeUpdateChamberStateAction(ColorSensor colorSensor) {
+    public IntakeUpdateChamberStateAction(ColorSensor colorSensor, RevolverManipulator revolverManipulator) {
         this.colorSensor = colorSensor;
+        this.revolverManipulator = revolverManipulator;
     }
 
     @Override
-    public void init() {
-        int currentChamber = RotateRevolverAction.getClosestChamberOfState(RevolverStorageManager.ArtifactState.NONE, RotateRevolverAction.RevolverMode.INPUT);
-        RevolverStorageManager.setStateOfChamber(currentChamber, (colorSensor.getColor().green >= GREEN_THRESHOLD) ? RevolverStorageManager.ArtifactState.GREEN : RevolverStorageManager.ArtifactState.PURPLE);
-        done = true;
-    }
+    public void init() {}
 
     @Override
-    public boolean isComplete() {
-        return done;
+    public void run() {
+        int currentChamber = revolverManipulator.getClosestChamberOfState(RevolverStorageManager.ArtifactState.NONE, RevolverManipulator.RevolverMode.INPUT);
+        RevolverStorageManager.setStateOfChamber(currentChamber, (colorSensor.getColor().green >= Constants.ARTIFACT_GREEN_THRESHOLD) ? RevolverStorageManager.ArtifactState.GREEN : RevolverStorageManager.ArtifactState.PURPLE);
     }
-
-    @Override
-    public void loop() {}
 }

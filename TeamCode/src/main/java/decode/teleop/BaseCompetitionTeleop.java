@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import codebase.Constants;
 import codebase.actions.Action;
-import codebase.actions.LaunchAction;
 import codebase.actions.RotateRevolverAction;
 import codebase.actions.SimultaneousAction;
 import codebase.actions.TripleIntakeAction;
@@ -20,12 +19,13 @@ import codebase.actions.TripleLaunchAction;
 import codebase.gamepad.Gamepad;
 import codebase.geometry.MovementVector;
 import codebase.hardware.Motor;
+import codebase.manipulators.RevolverManipulator;
 import codebase.movement.mecanum.MecanumDriver;
 import codebase.sensors.ColorSensor;
+import codebase.vision.LimelightManager;
 import decode.RevolverStorageManager;
 
-@TeleOp(name="Competition Teleop")
-public class CompetitionTeleop extends OpMode {
+public class BaseCompetitionTeleop extends OpMode {
 
     private Gamepad gamepad;
     private MecanumDriver driver;
@@ -44,11 +44,11 @@ public class CompetitionTeleop extends OpMode {
 
     private Motor intakeMotor;
 
-    private Telemetry.Item runningActionDisplay;
-
-    private RotateRevolverAction revolverAction;
+    private Telemetry.Item revolverStateDisplay;
 
     private ColorSensor storageColorSensor;
+
+    private RevolverManipulator revolverManipulator;
 
     AtomicReference<TripleIntakeAction> intakeAction = new AtomicReference<>();
 
@@ -64,7 +64,7 @@ public class CompetitionTeleop extends OpMode {
         launchMotor1 = new Motor(hardwareMap.get(DcMotorEx.class, "launchMotor1"));
         launchMotor2 = new Motor(hardwareMap.get(DcMotorEx.class, "launchMotor2"));
         launchServo = hardwareMap.get(ServoImpl.class, "launchServo");
-        launchServo.setPosition(1);
+        launchServo.setPosition(Constants.LAUNCH_SERVO_STORAGE_POSITION);
 
         intakeMotor = new Motor(hardwareMap.get(DcMotorEx.class, "intake"));
 
@@ -74,71 +74,44 @@ public class CompetitionTeleop extends OpMode {
 
         storageColorSensor = new ColorSensor(hardwareMap.get(RevColorSensorV3.class, "colorSensor"));
 
-        RotateRevolverAction.setRevolverMotor(revolverMotor);
-        LaunchAction.setLaunchActionMotors(launchServo, launchMotor1, launchMotor2);
+        RevolverStorageManager.setMotif(LimelightManager.Motif.PPG);
 
-
-
-
-        //  IMPORTANT READ THIS!!!!!!!!!!!!!!
-//        RevolverStorageManager.reset(); // remove this once we have an Auto running first
-
-//        gamepad.dpadLeft.onPress(() -> {
-//            revolverAction = new RotateRevolverAction(0, getRevolverMode());
-//            actionThread.add(revolverAction, true, true);
-//        });
-//
-//        gamepad.dpadUp.onPress(() -> {
-//            revolverAction = new RotateRevolverAction(1, getRevolverMode());
-//            actionThread.add(revolverAction, true, true);
-//        });
-//
-//        gamepad.dpadRight.onPress(() -> {
-//            revolverAction = new RotateRevolverAction(2, getRevolverMode());
-//            actionThread.add(revolverAction, true, true);
-//        });
-
-        RevolverStorageManager.reset();
+        revolverManipulator = new RevolverManipulator(revolverMotor);
+        revolverManipulator.init();
 
         gamepad.rightTrigger.onPress(() -> {
-            actionThread.add(new TripleLaunchAction(), true, true);
+            actionThread.add(new TripleLaunchAction(revolverManipulator, launchServo, launchMotor1, launchMotor2), true, true);
         });
 
         gamepad.leftTrigger.onPress(() -> {
-            intakeAction.set(new TripleIntakeAction(intakeMotor, storageColorSensor));
+            intakeAction.set(new TripleIntakeAction(intakeMotor, storageColorSensor, revolverManipulator));
             actionThread.add(intakeAction.get(), true, true);
         });
 
-        runningActionDisplay = telemetry.addData("runningAction", "");
+        revolverStateDisplay = telemetry.addData("Storage States", "");
 
         gamepad.bButton.onRelease(() -> {
             intakeMotor.setPower(0);
-        });
-    }
 
-    private RotateRevolverAction.RevolverMode getRevolverMode() {
-        return (gamepad.leftBumper.isPressed() ? RotateRevolverAction.RevolverMode.INPUT : RotateRevolverAction.RevolverMode.OUTPUT);
+            for (Action action : actionThread.getActions()) {
+                if (action instanceof TripleIntakeAction) {
+                    intakeMotor.setPower(-Constants.INTAKE_POWER);
+                }
+            }
+        });
     }
 
     @Override
     public void loop() {
-        driver.setRelativePower(new MovementVector(gamepad.leftJoystick.getY(), gamepad.leftJoystick.getX(), gamepad.rightJoystick.getX()));
+        driver.setRelativePower(new MovementVector(gamepad.leftJoystick.getY(), gamepad.leftJoystick.getX(), gamepad.rightJoystick.getX() * 0.5));
         gamepad.loop();
         actionThread.loop();
+        revolverManipulator.loop();
 
         if (gamepad.bButton.isPressed()) {
-            Action toRemove = null;
-            for (Action action : actionThread.getActions()) {
-                if (action.getClass() == TripleIntakeAction.class) {
-                    toRemove = action;
-                }
-            }
-
-            actionThread.getActions().remove(toRemove);
-
-            intakeMotor.setPower(-1);
+            intakeMotor.setPower(Constants.INTAKE_POWER);
         }
 
-        runningActionDisplay.setValue(RevolverStorageManager.getStateOfChamber(0) + ", " + RevolverStorageManager.getStateOfChamber(1) + ", " + RevolverStorageManager.getStateOfChamber(2));
+        revolverStateDisplay.setValue(RevolverStorageManager.getStateOfChamber(0) + ", " + RevolverStorageManager.getStateOfChamber(1) + ", " + RevolverStorageManager.getStateOfChamber(2));
     }
 }

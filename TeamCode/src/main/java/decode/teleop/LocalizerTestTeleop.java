@@ -37,13 +37,13 @@ public class LocalizerTestTeleop extends OpMode {
         this.bl = new Motor(hardwareMap.get(DcMotorEx.class, "bl"), 1200, 2.5);
         this.br = new Motor(hardwareMap.get(DcMotorEx.class, "br"), 1200, 2.5);
 
-        driver = new MecanumDriver(fl, fr, bl, br, Constants.MECANUM_COEFFICIENT_MATRIX, Constants.MAX_WHEEL_VELOCITY_INCHES_PER_SECOND);
+        driver = new MecanumDriver(fl, fr, bl, br, Constants.MECANUM_COEFFICIENT_MATRIX);
 
         gamepad = new Gamepad(gamepad1);
 
  // check forward vs reversed, and recheck signs of the vars
-        localizer = new PinpointLocalizer(hardwareMap.get(PinpointModule.class, "pinpoint"), Constants.PINPOINT_X_OFFSET, PinpointModule.EncoderDirection.REVERSED, Constants.PINPOINT_Y_OFFSET, PinpointModule.EncoderDirection.REVERSED, PinpointModule.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        localizer.init(new FieldPosition(0, 0, 0));
+        localizer = new PinpointLocalizer(hardwareMap.get(PinpointModule.class, "pinpoint"), Constants.PINPOINT_X_OFFSET, PinpointModule.EncoderDirection.FORWARD, Constants.PINPOINT_Y_OFFSET, PinpointModule.EncoderDirection.FORWARD, PinpointModule.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        localizer.init();
 
         positionDisplay = telemetry.addData("pos:", localizer.getCurrentPosition());
     }

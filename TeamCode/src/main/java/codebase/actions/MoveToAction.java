@@ -1,11 +1,8 @@
 package codebase.actions;
 
-import static codebase.Constants.DIRECTION_PID_COEFFICIENTS;
-import static codebase.Constants.MOVEMENT_PID_COEFFICIENTS;
-
-import com.qualcomm.robotcore.hardware.PIDCoefficients;
-
-import codebase.controllers.PIDController;
+import codebase.Constants;
+import codebase.controllers.Controller;
+import codebase.controllers.SigmoidController;
 import codebase.geometry.Angles;
 import codebase.geometry.FieldPosition;
 import codebase.geometry.MovementVector;
@@ -13,8 +10,8 @@ import codebase.movement.mecanum.MecanumDriver;
 import codebase.pathing.Localizer;
 
 public class MoveToAction implements Action {
-    private static MecanumDriver driver;
-    private static Localizer localizer;
+    private final MecanumDriver driver;
+    private final Localizer localizer;
 
     private final FieldPosition destination;
 
@@ -31,28 +28,26 @@ public class MoveToAction implements Action {
     private final double maxDistanceError;
     private final double maxRotationalError;
 
-    private final PIDController xPID;
-    private final PIDController yPID;
-    private final PIDController directionPID;
+    private final Controller xController;
+    private final Controller yController;
+    private final Controller directionController;
 
-    public MoveToAction(FieldPosition destination, double movementSpeed, double rotationalSpeed, double maxDistanceError, double maxRotationalError) {
+    public MoveToAction(MecanumDriver driver, Localizer localizer, FieldPosition destination, double movementSpeed, double rotationalSpeed, double maxDistanceError, double maxRotationalError) {
+        this.driver = driver;
+        this.localizer = localizer;
         this.destination = destination;
         this.movementSpeed = movementSpeed;
         this.rotationalSpeed = rotationalSpeed;
         this.maxDistanceError = maxDistanceError;
         this.maxRotationalError = maxRotationalError;
 
-        this.xPID = new PIDController(MOVEMENT_PID_COEFFICIENTS, () -> localizer.getCurrentPosition().x, () -> destination.x);
-        this.yPID = new PIDController(MOVEMENT_PID_COEFFICIENTS, () -> localizer.getCurrentPosition().y, () -> destination.y);
-        this.directionPID = new PIDController(
-                DIRECTION_PID_COEFFICIENTS,
+        this.xController = new SigmoidController(Constants.MOVEMENT_POWER, Constants.MOVEMENT_STEEPNESS, () -> localizer.getCurrentPosition().x, () -> destination.x);
+        this.yController = new SigmoidController(Constants.MOVEMENT_POWER, Constants.MOVEMENT_STEEPNESS, () -> localizer.getCurrentPosition().y, () -> destination.y);
+        this.directionController = new SigmoidController(
+                Constants.ROTATION_POWER,
+                Constants.ROTATION_STEEPNESS,
                 () -> Angles.angleDifference(localizer.getCurrentPosition().direction, destination.direction)
         );
-    }
-
-    public static void setDriverAndLocalizer(MecanumDriver driver, Localizer localizer) {
-        MoveToAction.driver = driver;
-        MoveToAction.localizer = localizer;
     }
 
     @Override
@@ -60,16 +55,17 @@ public class MoveToAction implements Action {
 
     @Override
     public void loop() {
-        double powerX = xPID.getPower();
-        double powerY = yPID.getPower();
-        double powerRotational = directionPID.getPower();
+        double powerX = xController.getPower() * movementSpeed;
+        double powerY = yController.getPower() * movementSpeed;
+        double powerRotational = directionController.getPower() * rotationalSpeed;
 
         MovementVector vector = new MovementVector(
-                movementSpeed * powerX,
-                movementSpeed * powerY,
-                rotationalSpeed * powerRotational);
+                powerX,
+                powerY,
+                powerRotational
+        );
 
-        this.driver.setAbsolutePower(localizer.getCurrentPosition(), vector);
+        driver.setAbsolutePower(localizer.getCurrentPosition(), vector);
     }
 
     @Override
@@ -83,11 +79,5 @@ public class MoveToAction implements Action {
         }
 
         return false;
-    }
-
-    public void setPIDCoefficients(PIDCoefficients movementCoefficients, PIDCoefficients rotationCoefficients) {
-        this.xPID.setCoefficients(movementCoefficients);
-        this.yPID.setCoefficients(movementCoefficients);
-        this.directionPID.setCoefficients(rotationCoefficients);
     }
 }

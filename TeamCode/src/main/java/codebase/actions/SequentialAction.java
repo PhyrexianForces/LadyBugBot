@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 
 public class SequentialAction implements Action {
 
-    private ActionNode currentActionNode;
+    protected ActionNode currentActionNode;
 
     public SequentialAction(Action first, Action... rest) {
         this.currentActionNode = new ActionNode(Stream.concat(Stream.of(first), Arrays.stream(rest)).toArray(Action[]::new));
@@ -23,8 +23,13 @@ public class SequentialAction implements Action {
 
     @Override
     public void loop() {
+        if (this.currentActionNode == null) {
+            return;
+        }
+
         if (this.currentActionNode.action.isComplete()) {
             this.currentActionNode = this.currentActionNode.next;
+
             if (this.currentActionNode != null) {
                 this.currentActionNode.action.init();
             }

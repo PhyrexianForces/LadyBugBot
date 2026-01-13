@@ -64,9 +64,8 @@ public class PinpointLocalizer implements Localizer {
     }
 
     @Override
-    public void init(FieldPosition initialPosition) {
+    public void init() {
         this.pinpointModule.resetPosAndIMU();
-        this.setCurrentFieldPosition(initialPosition);
     }
 
     public MovementVector getVelocity() {

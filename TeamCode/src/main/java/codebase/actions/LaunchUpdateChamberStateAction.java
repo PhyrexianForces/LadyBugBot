@@ -1,26 +1,22 @@
 package codebase.actions;
 
+import codebase.hardware.Motor;
+import codebase.manipulators.RevolverManipulator;
 import decode.RevolverStorageManager;
 
-public class LaunchUpdateChamberStateAction implements Action {
+public class LaunchUpdateChamberStateAction extends RunOnceAction {
+    private final RevolverManipulator revolverManipulator;
 
-
-    private boolean done = false;
-
-    public LaunchUpdateChamberStateAction() {}
+    public LaunchUpdateChamberStateAction(RevolverManipulator revolverManipulator) {
+        this.revolverManipulator = revolverManipulator;
+    }
 
     @Override
-    public void init() {
-        int currentChamber = RotateRevolverAction.getClosestChamberWithArtifact(RotateRevolverAction.RevolverMode.OUTPUT);
+    public void init() {}
+
+    @Override
+    public void run() {
+        int currentChamber = revolverManipulator.getClosestChamberWithArtifact(RevolverManipulator.RevolverMode.OUTPUT);
         RevolverStorageManager.setStateOfChamber(currentChamber, RevolverStorageManager.ArtifactState.NONE);
-        done = true;
     }
-
-    @Override
-    public boolean isComplete() {
-        return done;
-    }
-
-    @Override
-    public void loop() {}
 }

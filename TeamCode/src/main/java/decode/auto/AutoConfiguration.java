@@ -2,14 +2,17 @@ package decode.auto;
 
 import static decode.auto.AutoConfiguration.SpikeMark.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class AutoConfiguration {
-    public static final AutoConfiguration TESTING_CONFIG_RED = new AutoConfiguration(AllianceColor.RED, StartPosition.GOAL, new SpikeMark[] {HIGH, MIDDLE, LOW});
+    public static final AutoConfiguration CURRENT_CONFIG = new AutoConfiguration(AllianceColor.RED, StartPosition.GOAL, Arrays.asList(HIGH, MIDDLE, LOW));
 
     public final AllianceColor alliance;
     public final StartPosition startPosition;
-    public final SpikeMark[] spikeMarks;
+    public final List<SpikeMark> spikeMarks;
 
-    public AutoConfiguration(AllianceColor alliance, StartPosition startPosition, SpikeMark[] spikeMarks) {
+    public AutoConfiguration(AllianceColor alliance, StartPosition startPosition, List<SpikeMark> spikeMarks) {
         this.alliance = alliance;
         this.startPosition = startPosition;
         this.spikeMarks = spikeMarks;

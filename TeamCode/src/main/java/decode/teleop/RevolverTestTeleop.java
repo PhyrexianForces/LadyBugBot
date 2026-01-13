@@ -20,6 +20,7 @@ import codebase.actions.TripleLaunchAction;
 import codebase.gamepad.Gamepad;
 import codebase.geometry.MovementVector;
 import codebase.hardware.Motor;
+import codebase.manipulators.RevolverManipulator;
 import codebase.movement.mecanum.MecanumDriver;
 import codebase.sensors.ColorSensor;
 import decode.RevolverStorageManager;
@@ -30,40 +31,35 @@ public class RevolverTestTeleop extends OpMode {
     private Gamepad gamepad;
     private SimultaneousAction actionThread;
 
-    private Motor revolverMotor;
+    private RevolverManipulator revolverManipulator;
 
-    private RotateRevolverAction revolverAction;
 
     @Override
     public void init() {
-        revolverMotor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_5203_2402_0019_TICKS_PER_ROTATION);
 
         gamepad = new Gamepad(gamepad1);
+
         actionThread = new SimultaneousAction();
 
-        RotateRevolverAction.setRevolverMotor(revolverMotor);
-
+        Motor revolverMotor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_5203_2402_0019_TICKS_PER_ROTATION);
+        revolverManipulator = new RevolverManipulator(revolverMotor);
+        revolverManipulator.init();
 
         gamepad.dpadLeft.onPress(() -> {
-            revolverAction = new RotateRevolverAction(0, getRevolverMode());
-            actionThread.add(revolverAction, true, true);
+            actionThread.add(new RotateRevolverAction(0, getRevolverMode(), revolverManipulator), true, true);
         });
 
         gamepad.dpadUp.onPress(() -> {
-            revolverAction = new RotateRevolverAction(1, getRevolverMode());
-            actionThread.add(revolverAction, true, true);
+             actionThread.add(new RotateRevolverAction(1, getRevolverMode(), revolverManipulator), true, true);
         });
 
         gamepad.dpadRight.onPress(() -> {
-            revolverAction = new RotateRevolverAction(2, getRevolverMode());
-            actionThread.add(revolverAction, true, true);
+            actionThread.add(new RotateRevolverAction(2, getRevolverMode(), revolverManipulator), true, true);
         });
-
-        RevolverStorageManager.reset();
     }
 
-    private RotateRevolverAction.RevolverMode getRevolverMode() {
-        return (gamepad.leftBumper.isPressed() ? RotateRevolverAction.RevolverMode.INPUT : RotateRevolverAction.RevolverMode.OUTPUT);
+    private RevolverManipulator.RevolverMode getRevolverMode() {
+        return (gamepad.leftBumper.isPressed() ? RevolverManipulator.RevolverMode.INPUT : RevolverManipulator.RevolverMode.OUTPUT);
     }
 
     @Override

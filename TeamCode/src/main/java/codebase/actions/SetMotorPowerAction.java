@@ -2,7 +2,7 @@ package codebase.actions;
 
 import codebase.hardware.Motor;
 
-public class SetMotorPowerAction implements Action {
+public class SetMotorPowerAction extends RunOnceAction {
 
     private final Motor motor;
     private final double power;
@@ -16,12 +16,7 @@ public class SetMotorPowerAction implements Action {
     public void init() {}
 
     @Override
-    public boolean isComplete() {
-        return motor.getPower() == power;
-    }
-
-    @Override
-    public void loop() {
+    public void run() {
         motor.setPower(power);
     }
 }

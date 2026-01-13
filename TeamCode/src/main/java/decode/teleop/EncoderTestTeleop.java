@@ -54,7 +54,7 @@ public class EncoderTestTeleop extends OpMode {
         double pidPower = revolverPID.getPower();
         PIDPowerDisplay.setValue(pidPower);
 
-        System.out.println("pid power: " + pidPower + ", angle dif: " + Angles.angleDifference(motor.getMotorEncoder().getPosition(), 2.09439510239) + ", servo pos: " + motor.getMotorEncoder().getPosition());
+//        System.out.println("pid power: " + pidPower + ", angle dif: " + Angles.angleDifference(motor.getMotorEncoder().getPosition(), 2.09439510239) + ", servo pos: " + motor.getMotorEncoder().getPosition());
 
         if (gamepad.rightTrigger.getValue() >= 0.1) {
             revolverMotor.setPower(pidPower * gamepad.rightTrigger.getValue());

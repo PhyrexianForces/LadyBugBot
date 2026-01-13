@@ -4,23 +4,28 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
-import java.lang.reflect.Field;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import codebase.Constants;
 import codebase.geometry.FieldPosition;
+import decode.RevolverStorageManager;
+import decode.auto.AutoConfiguration;
 
 public class LimelightManager {
     private final Limelight3A limelight;
+
+    int currentPipelineIndex = 0;
 
     public LimelightManager(Limelight3A limelight) {
         this.limelight = limelight;
     }
 
     public Motif getMotif() {
-        ArrayList<Integer> aprilTags = getVisibleAprilTags();
+        List<Integer> aprilTags = getVisibleAprilTagIds();
 
         if (aprilTags.contains(21)) {
             return Motif.GPP;
@@ -34,8 +39,46 @@ public class LimelightManager {
         return Motif.NOT_FOUND;
     }
 
+    public static class GoalPositionResult {
+        public double horizontalOffsetRadians;
+        public double verticalOffsetRadians;
+        public double imagePercentage;
+        public double distanceEstimateInches;
+        public Pose3D targetPositionRelative;
+
+        public GoalPositionResult(double horizontalOffsetRadians, double verticalOffsetRadians, double imagePercentage, double distanceEstimateInches, Pose3D targetPositionRelative) {
+            this.horizontalOffsetRadians = horizontalOffsetRadians;
+            this.verticalOffsetRadians = verticalOffsetRadians;
+            this.imagePercentage = imagePercentage;
+            this.distanceEstimateInches = distanceEstimateInches;
+            this.targetPositionRelative = targetPositionRelative;
+        }
+    }
+
+    public GoalPositionResult getGoalPosition(AutoConfiguration.AllianceColor allianceColor) {
+        int targetAprilTagId = (allianceColor == AutoConfiguration.AllianceColor.BLUE ? 20 : 24);
+
+        switchToPipeline(3);
+
+        List<LLResultTypes.FiducialResult> aprilTags = getVisibleAprilTags();
+
+        for (LLResultTypes.FiducialResult aprilTag : aprilTags) {
+            if (aprilTag.getFiducialId() == targetAprilTagId) {
+                return new GoalPositionResult(
+                        aprilTag.getTargetXDegrees(),
+                        aprilTag.getTargetYDegrees(),
+                        aprilTag.getTargetArea(),
+                        -1,
+                        aprilTag.getTargetPoseRobotSpace()
+                );
+            }
+        }
+
+        return null;
+    }
+
     public FieldPosition getNearestVisibleArtifactPosition(FieldPosition robotPosition) {
-        limelight.pipelineSwitch(2);
+        switchToPipeline(2);
 
         LLResult result = limelight.getLatestResult();
 
@@ -56,28 +99,58 @@ public class LimelightManager {
         );
     }
 
-    public ArrayList<Integer> getVisibleAprilTags() {
-        limelight.pipelineSwitch(3);
+    public List<Integer> getVisibleAprilTagIds() {
+        return getVisibleAprilTags()
+                .stream()
+                .map(LLResultTypes.FiducialResult::getFiducialId)
+                .collect(Collectors.toList());
+    }
+
+    public List<LLResultTypes.FiducialResult> getVisibleAprilTags() {
+        switchToPipeline(3);
 
         LLResult result = limelight.getLatestResult();
 
-        ArrayList<Integer> aprilTags = new ArrayList<>();
-
         if (result != null && result.isValid()) {
-            List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-
-            for (LLResultTypes.FiducialResult fiducial : fiducials) {
-                aprilTags.add(fiducial.getFiducialId());
-            }
+            return result.getFiducialResults();
         }
 
-        return aprilTags;
+        return null;
+    }
+
+    private void switchToPipeline(int pipelineIndex) {
+
+        if (pipelineIndex == currentPipelineIndex) {
+            return;
+        }
+
+        limelight.pipelineSwitch(pipelineIndex);
+        double lastTimestamp = limelight.getLatestResult().getTimestamp();
+
+        while (limelight.getLatestResult().getTimestamp() == lastTimestamp) {
+            // wait for new frame so that new pipeline has initialized
+        }
+
+        currentPipelineIndex = pipelineIndex;
+    }
+
+    public Limelight3A getLimelight() {
+        return limelight;
     }
 
     public enum Motif {
         GPP,
         PGP,
         PPG,
-        NOT_FOUND
+        NOT_FOUND;
+
+        public RevolverStorageManager.ArtifactState[] toArtifactStates() {
+            switch (this) {
+                case GPP: return new RevolverStorageManager.ArtifactState[] {RevolverStorageManager.ArtifactState.GREEN, RevolverStorageManager.ArtifactState.PURPLE, RevolverStorageManager.ArtifactState.PURPLE};
+                case PGP: return new RevolverStorageManager.ArtifactState[] {RevolverStorageManager.ArtifactState.PURPLE, RevolverStorageManager.ArtifactState.GREEN, RevolverStorageManager.ArtifactState.PURPLE};
+                case PPG: return new RevolverStorageManager.ArtifactState[] {RevolverStorageManager.ArtifactState.PURPLE, RevolverStorageManager.ArtifactState.PURPLE, RevolverStorageManager.ArtifactState.GREEN};
+                default: return null;
+            }
+        }
     }
 }

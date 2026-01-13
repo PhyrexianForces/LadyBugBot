@@ -63,7 +63,6 @@ public class DcMotorToPositionAction implements Action {
     @Override
     public void loop() {
         double power = pid.getPower();
-        System.out.println("pid power: " + power + ", angle dif: " + Angles.angleDifference(motor.getMotorEncoder().getPosition(), targetRotation.get()) + ", servo pos: " + motor.getMotorEncoder().getPosition());
         motor.setPower(power * rotationalSpeed);
     }
 

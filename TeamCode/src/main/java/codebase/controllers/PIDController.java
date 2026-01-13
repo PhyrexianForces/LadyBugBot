@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
 import java.util.function.Supplier;
 
-public class PIDController {
+public class PIDController implements Controller {
 
     private PIDCoefficients coefficients;
     private final Supplier<Double> errorSupplier;
@@ -23,6 +23,7 @@ public class PIDController {
         this.errorSupplier = errorSupplier;
     }
 
+    @Override
     public double getPower() {
         if (lastTime == 0) {
             lastTime = System.currentTimeMillis();
@@ -48,6 +49,11 @@ public class PIDController {
         lastDerivative = derivative;
 
         return result;
+    }
+
+    @Override
+    public double getError() {
+        return errorSupplier.get();
     }
 
     public void setCoefficients(PIDCoefficients coefficients) {

@@ -4,7 +4,6 @@ import static decode.auto.AutoConfiguration.SpikeMark.HIGH;
 import static decode.auto.AutoConfiguration.SpikeMark.LOW;
 import static decode.auto.AutoConfiguration.SpikeMark.MIDDLE;
 
-import com.qualcomm.hardware.limelightvision.LLFieldMap;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -12,13 +11,9 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.ServoImpl;
 
-import java.util.List;
-
 import codebase.Constants;
-import codebase.actions.Action;
 import codebase.actions.CustomAction;
 import codebase.actions.EmptyAction;
-import codebase.actions.LaunchAction;
 import codebase.actions.MoveToAction;
 import codebase.actions.RotateRevolverAction;
 import codebase.actions.SequentialAction;
@@ -32,71 +27,72 @@ import codebase.hardware.Motor;
 import codebase.hardware.PinpointModule;
 import codebase.manipulators.RevolverManipulator;
 import codebase.movement.mecanum.MecanumDriver;
-import codebase.pathing.Localizer;
 import codebase.pathing.PinpointLocalizer;
 import codebase.sensors.ColorSensor;
 import codebase.vision.LimelightManager;
 import decode.RevolverStorageManager;
 
-@Autonomous(name="Test Auto")
-public class TestAuto extends OpMode {
+@Autonomous(name="Competition Auto Bad")
+public class CompetitionAutoBad extends OpMode {
 
-    private final AutoConfiguration config = AutoConfiguration.CURRENT_CONFIG;
+    private AutoConfiguration config = AutoConfiguration.CURRENT_CONFIG;
 
     private SequentialAction actionThread;
+
+    private Motor fl;
+    private Motor fr;
+    private Motor bl;
+    private Motor br;
+
+    private Motor revolverMotor;
 
     private ServoImpl launchServo;
     private Motor launchMotor1;
     private Motor launchMotor2;
 
-    private Motor intakeMotor;
-
     private MecanumDriver driver;
-
-    private PinpointLocalizer localizer;
-
-    private ColorSensor storageColorSensor;
-
-    private LimelightManager limelightManager;
 
     private RevolverManipulator revolverManipulator;
 
     @Override
     public void init() {
-        driver = new MecanumDriver(
-                new Motor(hardwareMap.get(DcMotorEx.class, "fl")),
-                new Motor(hardwareMap.get(DcMotorEx.class, "fr")),
-                new Motor(hardwareMap.get(DcMotorEx.class, "bl")),
-                new Motor(hardwareMap.get(DcMotorEx.class, "br")),
-                Constants.MECANUM_COEFFICIENT_MATRIX
-        );
+        fl = new Motor(hardwareMap.get(DcMotorEx.class, "fl"));
+        fr = new Motor(hardwareMap.get(DcMotorEx.class, "fr"));
+        bl = new Motor(hardwareMap.get(DcMotorEx.class, "bl"));
+        br = new Motor(hardwareMap.get(DcMotorEx.class, "br"));
 
-        Motor revolverMotor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_5203_2402_0019_TICKS_PER_ROTATION);
-        revolverManipulator = new RevolverManipulator(revolverMotor);
-        revolverManipulator.init();
+        revolverMotor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_5203_2402_0019_TICKS_PER_ROTATION);
 
         launchMotor1 = new Motor(hardwareMap.get(DcMotorEx.class, "launchMotor1"));
         launchMotor2 = new Motor(hardwareMap.get(DcMotorEx.class, "launchMotor2"));
         launchServo = hardwareMap.get(ServoImpl.class, "launchServo");
         launchServo.setPosition(Constants.LAUNCH_SERVO_STORAGE_POSITION);
 
-        intakeMotor = new Motor(hardwareMap.get(DcMotorEx.class, "intake"));
+        driver = new MecanumDriver(fl, fr, bl, br, Constants.MECANUM_COEFFICIENT_MATRIX);
 
-        localizer = new PinpointLocalizer(hardwareMap.get(PinpointModule.class, "pinpoint"), Constants.PINPOINT_X_OFFSET, PinpointModule.EncoderDirection.FORWARD, Constants.PINPOINT_Y_OFFSET, PinpointModule.EncoderDirection.FORWARD, PinpointModule.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        localizer.init();
-
-        do { localizer.loop(); } while (!localizer.isDoneInitializing());
-
-        localizer.setCurrentFieldPosition(new FieldPosition(0, 0, 0));
-
-        storageColorSensor = new ColorSensor(hardwareMap.get(RevColorSensorV3.class, "colorSensor"));
-
-        limelightManager = new LimelightManager(hardwareMap.get(Limelight3A.class, "limelight"));
-
-        limelightManager.getLimelight().start();
+        revolverManipulator = new RevolverManipulator(revolverMotor);
+        revolverManipulator.init();
 
         actionThread = new SequentialAction(
-            new MoveToAction(driver, localizer, new FieldPosition(10, 10, Math.toRadians(90)), 1, 1, 2, Math.toRadians(5))
+            new CustomAction(() -> {
+                driver.setRelativePower(new MovementVector(-0.5, 0, 0));
+            }),
+            new SleepAction(400),
+            new CustomAction(() -> {
+                driver.setRelativePower(new MovementVector(-0.3, 0, 0));
+            }),
+            new SleepAction(450),
+            new CustomAction(() -> {
+                driver.stop();
+            }),
+            new TripleLaunchAction(revolverManipulator, launchServo, launchMotor1, launchMotor2),
+            new CustomAction(() -> {
+                driver.setRelativePower(new MovementVector(-0.5, 0.9 * (config.alliance == AutoConfiguration.AllianceColor.BLUE ? -1 : 1), 0));
+            }),
+            new SleepAction(1000),
+            new CustomAction(() -> {
+                driver.stop();
+            })
         );
 
         actionThread.init();
@@ -107,7 +103,6 @@ public class TestAuto extends OpMode {
     @Override
     public void loop() {
         actionThread.loop();
-        localizer.loop();
         revolverManipulator.loop();
     }
 }

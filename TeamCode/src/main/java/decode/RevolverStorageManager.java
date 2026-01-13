@@ -2,9 +2,14 @@ package decode;
 
 import java.util.ArrayList;
 
+import codebase.actions.RotateRevolverAction;
+import codebase.vision.LimelightManager;
+
 public abstract class RevolverStorageManager {
 
-    private static ArtifactState[] chamberStates = new ArtifactState[] {ArtifactState.PURPLE, ArtifactState.PURPLE, ArtifactState.PURPLE};
+    private static ArtifactState[] chamberStates = new ArtifactState[] {ArtifactState.GREEN, ArtifactState.PURPLE, ArtifactState.PURPLE};
+
+    private static LimelightManager.Motif motif = LimelightManager.Motif.NOT_FOUND;
 
     public enum ArtifactState {
         PURPLE,
@@ -17,7 +22,7 @@ public abstract class RevolverStorageManager {
      * Should ONLY be called in init of the Autonomous
      */
     public static void resetFull() {
-        chamberStates = new ArtifactState[] {ArtifactState.PURPLE, ArtifactState.PURPLE, ArtifactState.PURPLE};
+        chamberStates = new ArtifactState[] {ArtifactState.GREEN, ArtifactState.PURPLE, ArtifactState.PURPLE};
     }
 
     /**
@@ -50,5 +55,14 @@ public abstract class RevolverStorageManager {
         }
 
         return chambers;
+    }
+
+    public static void setMotif(LimelightManager.Motif motif) {
+        RevolverStorageManager.motif = motif;
+    }
+
+    public static LimelightManager.Motif getMotif() {
+        System.out.println("Motif is currently set to: " + motif);
+        return RevolverStorageManager.motif;
     }
 }
