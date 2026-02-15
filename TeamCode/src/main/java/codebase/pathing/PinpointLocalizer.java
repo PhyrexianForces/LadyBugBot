@@ -5,6 +5,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
+import java.lang.reflect.Field;
+
 import codebase.geometry.FieldPosition;
 import codebase.geometry.MovementVector;
 import codebase.hardware.PinpointModule;
@@ -12,6 +14,8 @@ import codebase.hardware.PinpointModule;
 public class PinpointLocalizer implements Localizer {
 
     private final PinpointModule pinpointModule;
+
+    private static FieldPosition lastPosition = new FieldPosition(0, 0, 0);
 
     /**
      *
@@ -66,6 +70,7 @@ public class PinpointLocalizer implements Localizer {
     @Override
     public void init() {
         this.pinpointModule.resetPosAndIMU();
+        PinpointLocalizer.lastPosition = getCurrentPosition();
     }
 
     public MovementVector getVelocity() {
@@ -85,11 +90,20 @@ public class PinpointLocalizer implements Localizer {
     public void loop() {
         try {
             pinpointModule.update();
+            PinpointLocalizer.lastPosition = getCurrentPosition();
         } catch (LynxNackException e) {
         }
     }
 
     public boolean isDoneInitializing() {
         return pinpointModule.getDeviceStatus() == PinpointModule.DeviceStatus.READY;
+    }
+
+    public static FieldPosition getLastPosition() {
+        return PinpointLocalizer.lastPosition;
+    }
+
+    public static void resetLastPosition() {
+        PinpointLocalizer.lastPosition = new FieldPosition(0, 0, 0);
     }
 }

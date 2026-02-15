@@ -25,7 +25,10 @@ public class LimelightManager {
     }
 
     public Motif getMotif() {
+        System.out.println("Getting april tags");
         List<Integer> aprilTags = getVisibleAprilTagIds();
+
+        System.out.println("got april tags__");
 
         if (aprilTags.contains(21)) {
             return Motif.GPP;
@@ -39,38 +42,38 @@ public class LimelightManager {
         return Motif.NOT_FOUND;
     }
 
-    public static class GoalPositionResult {
+    public static class AprilTagResult {
+        public int id;
         public double horizontalOffsetRadians;
         public double verticalOffsetRadians;
         public double imagePercentage;
-        public double distanceEstimateInches;
         public Pose3D targetPositionRelative;
 
-        public GoalPositionResult(double horizontalOffsetRadians, double verticalOffsetRadians, double imagePercentage, double distanceEstimateInches, Pose3D targetPositionRelative) {
+        public AprilTagResult(int id, double horizontalOffsetRadians, double verticalOffsetRadians, double imagePercentage, Pose3D targetPositionRelative) {
+            this.id = id;
             this.horizontalOffsetRadians = horizontalOffsetRadians;
             this.verticalOffsetRadians = verticalOffsetRadians;
             this.imagePercentage = imagePercentage;
-            this.distanceEstimateInches = distanceEstimateInches;
             this.targetPositionRelative = targetPositionRelative;
         }
     }
 
-    public GoalPositionResult getGoalPosition(AutoConfiguration.AllianceColor allianceColor) {
+    public boolean canSeeGoalAprilTag(AutoConfiguration.AllianceColor allianceColor) {
+        int targetAprilTagId = (allianceColor == AutoConfiguration.AllianceColor.BLUE ? 20 : 24);
+
+        return getVisibleAprilTagIds().contains(targetAprilTagId);
+    }
+
+    public AprilTagResult getGoalAprilTag(AutoConfiguration.AllianceColor allianceColor) {
         int targetAprilTagId = (allianceColor == AutoConfiguration.AllianceColor.BLUE ? 20 : 24);
 
         switchToPipeline(3);
 
-        List<LLResultTypes.FiducialResult> aprilTags = getVisibleAprilTags();
+        List<AprilTagResult> aprilTags = getVisibleAprilTags();
 
-        for (LLResultTypes.FiducialResult aprilTag : aprilTags) {
-            if (aprilTag.getFiducialId() == targetAprilTagId) {
-                return new GoalPositionResult(
-                        aprilTag.getTargetXDegrees(),
-                        aprilTag.getTargetYDegrees(),
-                        aprilTag.getTargetArea(),
-                        -1,
-                        aprilTag.getTargetPoseRobotSpace()
-                );
+        for (AprilTagResult aprilTag : aprilTags) {
+            if (aprilTag.id == targetAprilTagId) {
+                return aprilTag;
             }
         }
 
@@ -102,20 +105,34 @@ public class LimelightManager {
     public List<Integer> getVisibleAprilTagIds() {
         return getVisibleAprilTags()
                 .stream()
-                .map(LLResultTypes.FiducialResult::getFiducialId)
+                .map(tag -> tag.id)
                 .collect(Collectors.toList());
     }
 
-    public List<LLResultTypes.FiducialResult> getVisibleAprilTags() {
+    public List<AprilTagResult> getVisibleAprilTags() {
+        System.out.println("switching pipelines to 3");
         switchToPipeline(3);
+        System.out.println("switched pipelines");
 
         LLResult result = limelight.getLatestResult();
 
+        System.out.println("got result");
+
         if (result != null && result.isValid()) {
-            return result.getFiducialResults();
+            System.out.println("getting fiducialresults");
+            return result.getFiducialResults()
+                    .stream()
+                    .map(f -> new AprilTagResult(
+                            f.getFiducialId(),
+                            f.getTargetXDegrees(),
+                            f.getTargetYDegrees(),
+                            f.getTargetArea(),
+                            f.getTargetPoseRobotSpace()
+                    ))
+                    .collect(Collectors.toList());
         }
 
-        return null;
+        return new ArrayList<>(0);
     }
 
     private void switchToPipeline(int pipelineIndex) {
@@ -127,7 +144,13 @@ public class LimelightManager {
         limelight.pipelineSwitch(pipelineIndex);
         double lastTimestamp = limelight.getLatestResult().getTimestamp();
 
+        double startTime = System.currentTimeMillis();
+
         while (limelight.getLatestResult().getTimestamp() == lastTimestamp) {
+            System.out.println(limelight.getLatestResult().getTimestamp());
+            if (System.currentTimeMillis() - startTime > 1000) {
+                return;
+            }
             // wait for new frame so that new pipeline has initialized
         }
 

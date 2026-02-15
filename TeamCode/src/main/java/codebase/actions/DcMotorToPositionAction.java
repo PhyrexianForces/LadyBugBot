@@ -60,22 +60,25 @@ public class DcMotorToPositionAction implements Action {
         this.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
+    private boolean complete = false;
+
     @Override
     public void loop() {
+        double rotationalError = Angles.angleDifference(motor.getMotorEncoder().getPosition(), targetRotation.get());
+
+        if (Math.abs(rotationalError) <= maxRotationalError) {
+            motor.setPower(0);
+            complete = true;
+            return;
+        }
+
         double power = pid.getPower();
         motor.setPower(power * rotationalSpeed);
     }
 
     @Override
     public boolean isComplete() {
-        double rotationalError = Angles.angleDifference(motor.getMotorEncoder().getPosition(), targetRotation.get());
-
-        if (Math.abs(rotationalError) <= maxRotationalError) {
-            motor.setPower(0);
-            return true;
-        }
-
-        return false;
+        return complete;
     }
 
     public void setPIDCoefficients(PIDCoefficients pidCoefficients) {

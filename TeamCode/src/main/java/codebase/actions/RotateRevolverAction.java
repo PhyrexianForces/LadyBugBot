@@ -31,11 +31,8 @@ public class RotateRevolverAction extends RunOnceAction {
     }
 
     @Override
-    public void init() {}
-
-    @Override
     public boolean isComplete() {
-        return manipulator.isAtTarget();
+        return hasRun && manipulator.isAtTarget();
     }
 
     @Override

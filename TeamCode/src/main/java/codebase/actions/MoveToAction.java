@@ -13,17 +13,17 @@ public class MoveToAction implements Action {
     private final MecanumDriver driver;
     private final Localizer localizer;
 
-    private final FieldPosition destination;
+    private FieldPosition destination;
 
     /**
      * The speed to move horizontally/vertically or some combination of the two in inches/sec
      */
-    private final double movementSpeed;
+    private final double movementSpeedMultiplier;
 
     /**
      * The max rotational speed of the robot in radians/sec
      */
-    private final double rotationalSpeed;
+    private final double rotationalSpeedMultiplier;
 
     private final double maxDistanceError;
     private final double maxRotationalError;
@@ -32,19 +32,19 @@ public class MoveToAction implements Action {
     private final Controller yController;
     private final Controller directionController;
 
-    public MoveToAction(MecanumDriver driver, Localizer localizer, FieldPosition destination, double movementSpeed, double rotationalSpeed, double maxDistanceError, double maxRotationalError) {
+    public MoveToAction(MecanumDriver driver, Localizer localizer, FieldPosition destination, double movementSpeedMultiplier, double rotationalSpeedMultiplier, double maxDistanceError, double maxRotationalError) {
         this.driver = driver;
         this.localizer = localizer;
         this.destination = destination;
-        this.movementSpeed = movementSpeed;
-        this.rotationalSpeed = rotationalSpeed;
+        this.movementSpeedMultiplier = movementSpeedMultiplier;
+        this.rotationalSpeedMultiplier = rotationalSpeedMultiplier;
         this.maxDistanceError = maxDistanceError;
         this.maxRotationalError = maxRotationalError;
 
-        this.xController = new SigmoidController(Constants.MOVEMENT_POWER, Constants.MOVEMENT_STEEPNESS, () -> localizer.getCurrentPosition().x, () -> destination.x);
-        this.yController = new SigmoidController(Constants.MOVEMENT_POWER, Constants.MOVEMENT_STEEPNESS, () -> localizer.getCurrentPosition().y, () -> destination.y);
+        this.xController = new SigmoidController(Constants.MOVEMENT_VELOCITY, Constants.MOVEMENT_STEEPNESS, () -> localizer.getCurrentPosition().x, () -> destination.x);
+        this.yController = new SigmoidController(Constants.MOVEMENT_VELOCITY, Constants.MOVEMENT_STEEPNESS, () -> localizer.getCurrentPosition().y, () -> destination.y);
         this.directionController = new SigmoidController(
-                Constants.ROTATION_POWER,
+                Constants.ROTATION_VELOCITY,
                 Constants.ROTATION_STEEPNESS,
                 () -> Angles.angleDifference(localizer.getCurrentPosition().direction, destination.direction)
         );
@@ -53,31 +53,50 @@ public class MoveToAction implements Action {
     @Override
     public void init() {}
 
+    private boolean complete = false;
+
     @Override
     public void loop() {
-        double powerX = xController.getPower() * movementSpeed;
-        double powerY = yController.getPower() * movementSpeed;
-        double powerRotational = directionController.getPower() * rotationalSpeed;
-
-        MovementVector vector = new MovementVector(
-                powerX,
-                powerY,
-                powerRotational
-        );
-
-        driver.setAbsolutePower(localizer.getCurrentPosition(), vector);
-    }
-
-    @Override
-    public boolean isComplete() {
         double distanceError = Math.sqrt(Math.pow(localizer.getCurrentPosition().x - destination.x, 2) + Math.pow(localizer.getCurrentPosition().y - destination.y, 2));
         double rotationalError = Angles.angleDifference(localizer.getCurrentPosition().direction, destination.direction);
 
         if ((distanceError <= maxDistanceError) && (rotationalError <= maxRotationalError)) {
             driver.stop();
-            return true;
+            complete = true;
+            return;
         }
 
-        return false;
+        double velocityX = xController.getPower() * movementSpeedMultiplier;
+        double velocityY = yController.getPower() * movementSpeedMultiplier;
+        double velocityRotational = -directionController.getPower() * rotationalSpeedMultiplier;
+
+        MovementVector vector = new MovementVector(
+                velocityX,
+                velocityY,
+                velocityRotational
+        );
+
+        driver.setAbsoluteVelocity(localizer.getCurrentPosition(), vector);
+    }
+
+    @Override
+    public boolean isComplete() {
+        return complete;
+    }
+
+    public void setDestination(FieldPosition destination) {
+        this.destination = destination;
+    }
+
+    public double getErrorY() {
+        return yController.getError();
+    }
+
+    public double getErrorX() {
+        return xController.getError();
+    }
+
+    public double getErrorDirection() {
+        return directionController.getError();
     }
 }

@@ -21,6 +21,11 @@ public class IntakeUpdateChamberStateAction extends RunOnceAction {
     @Override
     public void run() {
         int currentChamber = revolverManipulator.getClosestChamberOfState(RevolverStorageManager.ArtifactState.NONE, RevolverManipulator.RevolverMode.INPUT);
-        RevolverStorageManager.setStateOfChamber(currentChamber, (colorSensor.getColor().green >= Constants.ARTIFACT_GREEN_THRESHOLD) ? RevolverStorageManager.ArtifactState.GREEN : RevolverStorageManager.ArtifactState.PURPLE);
+        boolean isGreen = colorSensor.getColor().green >= Constants.ARTIFACT_GREEN_THRESHOLD
+                && colorSensor.getColor().red <= Constants.ARTIFACT_GREEN_THRESHOLD_RED;
+        RevolverStorageManager.ArtifactState state = isGreen
+                ? RevolverStorageManager.ArtifactState.GREEN
+                : RevolverStorageManager.ArtifactState.PURPLE;
+        RevolverStorageManager.setStateOfChamber(currentChamber, state);
     }
 }

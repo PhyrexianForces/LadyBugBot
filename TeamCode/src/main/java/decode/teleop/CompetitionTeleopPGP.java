@@ -10,7 +10,7 @@ public class CompetitionTeleopPGP extends BaseCompetitionTeleop {
 
     @Override
     public void init() {
-        super.init();
         RevolverStorageManager.setMotif(LimelightManager.Motif.PGP);
+        super.init();
     }
 }

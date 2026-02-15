@@ -32,10 +32,10 @@ public class LocalizerTestTeleop extends OpMode {
 
     @Override
     public void init() {
-        this.fl = new Motor(hardwareMap.get(DcMotorEx.class, "fl"), 1200, 2.5);
-        this.fr = new Motor(hardwareMap.get(DcMotorEx.class, "fr"), 1200, 2.5);
-        this.bl = new Motor(hardwareMap.get(DcMotorEx.class, "bl"), 1200, 2.5);
-        this.br = new Motor(hardwareMap.get(DcMotorEx.class, "br"), 1200, 2.5);
+        this.fl = new Motor(hardwareMap.get(DcMotorEx.class, "fl"), 1200, 2.5, true);
+        this.fr = new Motor(hardwareMap.get(DcMotorEx.class, "fr"), 1200, 2.5, true);
+        this.bl = new Motor(hardwareMap.get(DcMotorEx.class, "bl"), 1200, 2.5, true);
+        this.br = new Motor(hardwareMap.get(DcMotorEx.class, "br"), 1200, 2.5, true);
 
         driver = new MecanumDriver(fl, fr, bl, br, Constants.MECANUM_COEFFICIENT_MATRIX);
 

@@ -4,7 +4,6 @@ import static decode.auto.AutoConfiguration.SpikeMark.HIGH;
 import static decode.auto.AutoConfiguration.SpikeMark.LOW;
 import static decode.auto.AutoConfiguration.SpikeMark.MIDDLE;
 
-import com.qualcomm.hardware.limelightvision.LLFieldMap;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -12,27 +11,23 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.ServoImpl;
 
-import java.util.List;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import codebase.Constants;
-import codebase.actions.Action;
 import codebase.actions.CustomAction;
 import codebase.actions.EmptyAction;
-import codebase.actions.LaunchAction;
 import codebase.actions.MoveToAction;
-import codebase.actions.RotateRevolverAction;
 import codebase.actions.SequentialAction;
 import codebase.actions.SimultaneousAction;
 import codebase.actions.SleepAction;
 import codebase.actions.TripleIntakeAction;
 import codebase.actions.TripleLaunchAction;
 import codebase.geometry.FieldPosition;
-import codebase.geometry.MovementVector;
 import codebase.hardware.Motor;
 import codebase.hardware.PinpointModule;
+import codebase.manipulators.FlywheelManipulator;
 import codebase.manipulators.RevolverManipulator;
 import codebase.movement.mecanum.MecanumDriver;
-import codebase.pathing.Localizer;
 import codebase.pathing.PinpointLocalizer;
 import codebase.sensors.ColorSensor;
 import codebase.vision.LimelightManager;
@@ -61,26 +56,30 @@ public class CompetitionAuto extends OpMode {
 
     private RevolverManipulator revolverManipulator;
 
+    private FlywheelManipulator flywheelManipulator;
+
+    private Telemetry.Item telem;
+
     @Override
     public void init() {
         driver = new MecanumDriver(
-                new Motor(hardwareMap.get(DcMotorEx.class, "fl")),
-                new Motor(hardwareMap.get(DcMotorEx.class, "fr")),
-                new Motor(hardwareMap.get(DcMotorEx.class, "bl")),
-                new Motor(hardwareMap.get(DcMotorEx.class, "br")),
-                Constants.MECANUM_COEFFICIENT_MATRIX
+                new Motor(hardwareMap.get(DcMotorEx.class, "fl"), Constants.DRIVE_MOTOR_CONFIG),
+                new Motor(hardwareMap.get(DcMotorEx.class, "fr"), Constants.DRIVE_MOTOR_CONFIG),
+                new Motor(hardwareMap.get(DcMotorEx.class, "bl"), Constants.DRIVE_MOTOR_CONFIG),
+                new Motor(hardwareMap.get(DcMotorEx.class, "br"), Constants.DRIVE_MOTOR_CONFIG),
+                Constants.MECANUM_COEFFICIENT_MATRIX,
+                Constants.MAX_WHEEL_VELOCITY
         );
 
-        Motor revolverMotor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_5203_2402_0019_TICKS_PER_ROTATION);
-        revolverManipulator = new RevolverManipulator(revolverMotor);
-        revolverManipulator.init();
 
-        launchMotor1 = new Motor(hardwareMap.get(DcMotorEx.class, "launchMotor1"));
-        launchMotor2 = new Motor(hardwareMap.get(DcMotorEx.class, "launchMotor2"));
+
+        launchMotor1 = new Motor(hardwareMap.get(DcMotorEx.class, "launchMotor1"), Constants.FLYWHEEL_MOTOR_CONFIG);
+        launchMotor2 = new Motor(hardwareMap.get(DcMotorEx.class, "launchMotor2"), Constants.FLYWHEEL_MOTOR_CONFIG);
+
         launchServo = hardwareMap.get(ServoImpl.class, "launchServo");
         launchServo.setPosition(Constants.LAUNCH_SERVO_STORAGE_POSITION);
 
-        intakeMotor = new Motor(hardwareMap.get(DcMotorEx.class, "intake"));
+        intakeMotor = new Motor(hardwareMap.get(DcMotorEx.class, "intake"), Constants.INTAKE_MOTOR_CONFIG);
 
         localizer = new PinpointLocalizer(hardwareMap.get(PinpointModule.class, "pinpoint"), Constants.PINPOINT_X_OFFSET, PinpointModule.EncoderDirection.FORWARD, Constants.PINPOINT_Y_OFFSET, PinpointModule.EncoderDirection.FORWARD, PinpointModule.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         localizer.init();
@@ -95,25 +94,35 @@ public class CompetitionAuto extends OpMode {
 
         limelightManager.getLimelight().start();
 
+        flywheelManipulator = new FlywheelManipulator(launchMotor1, launchMotor2, localizer, config.alliance);
+        flywheelManipulator.init();
+
+        ServoImpl revolverServo = hardwareMap.get(ServoImpl.class, "revolverServo");
+        revolverManipulator = new RevolverManipulator(revolverServo, intakeMotor);
+
+        RevolverStorageManager.resetFull();
+
         actionThread = new SequentialAction(
             readMotif(),
+            new CustomAction(flywheelManipulator::runFlywheel),
             moveToLaunchPosition(),
-//            new TripleLaunchAction(revolverManipulator, launchServo, launchMotor1, launchMotor2),
+            new TripleLaunchAction(revolverManipulator, launchServo, flywheelManipulator),
             cycleConfiguredSpikeMarks(),
             moveOutOfLaunchZone()
         );
 
         actionThread.init();
 
-        RevolverStorageManager.resetFull();
+        telem = telemetry.addData("target: ", "");
+
     }
 
     private FieldPosition getStartPosition() {
         FieldPosition startPosition;
         if (config.startPosition == AutoConfiguration.StartPosition.GOAL) {
-            startPosition = new FieldPosition(-72 + (14 + 4 * Math.sqrt(2)), 72 - (14 + 4 * Math.sqrt(2)), Math.PI * (3.0)/(4.0));
+            startPosition = new FieldPosition(-72 + (14 + 4 * Math.sqrt(2)), 72 - (14 + 4 * Math.sqrt(2)), Math.toRadians(214));
         } else {
-            startPosition = new FieldPosition(72 - 7.5, 0, Math.PI);
+            startPosition = new FieldPosition(72 - 7.5, 15, Math.PI);
         }
 
         int allianceCoefficient = (config.alliance == AutoConfiguration.AllianceColor.BLUE ? -1 : 1);
@@ -132,10 +141,15 @@ public class CompetitionAuto extends OpMode {
         return new SequentialAction(
             new MoveToAction(driver, localizer, motifReadPosition, 1, 1, 3, Math.toRadians(4)),
             new CustomAction(() -> {
-//               RevolverStorageManager.setMotif(limelightManager.getMotif());
-//               if (RevolverStorageManager.getMotif() == LimelightManager.Motif.NOT_FOUND) {
-//                   RevolverStorageManager.setMotif(LimelightManager.Motif.PGP);
-//               }
+                double startTime = System.currentTimeMillis();
+                while(limelightManager.getVisibleAprilTagIds().isEmpty() || RevolverStorageManager.getMotif() == LimelightManager.Motif.NOT_FOUND) {
+                    RevolverStorageManager.setMotif(limelightManager.getMotif());
+                    System.out.println("Found motif of: " + limelightManager.getMotif());
+                    if (System.currentTimeMillis() - startTime >= 1000) {
+                        RevolverStorageManager.setMotif(LimelightManager.Motif.PPG);
+                        break;
+                    }
+                }
             })
         );
     }
@@ -143,9 +157,15 @@ public class CompetitionAuto extends OpMode {
     private MoveToAction moveToLaunchPosition() {
         int allianceCoefficient = (config.alliance == AutoConfiguration.AllianceColor.BLUE ? -1 : 1);
 
-        FieldPosition launchPosition = new FieldPosition(-30, 30 * allianceCoefficient, Math.PI * (3.0)/(4.0) * allianceCoefficient);
+        FieldPosition launchPosition;
 
-        return new MoveToAction(driver, localizer, launchPosition, 1, 1, 3, Math.toRadians(4));
+        if (config.startPosition == AutoConfiguration.StartPosition.GOAL) {
+            launchPosition = new FieldPosition(-10, 10 * allianceCoefficient, 2.2 * allianceCoefficient);
+        } else {
+            launchPosition = new FieldPosition(60, 12 * allianceCoefficient, 2.768 * allianceCoefficient);
+        }
+
+        return new MoveToAction(driver, localizer, launchPosition, 1, 1, 1, Math.toRadians(2));
     }
 
     private SequentialAction cycleConfiguredSpikeMarks() {
@@ -159,25 +179,29 @@ public class CompetitionAuto extends OpMode {
     private SequentialAction cycleSpikeMark(AutoConfiguration.SpikeMark spikeMark) {
         int allianceCoefficient = (config.alliance == AutoConfiguration.AllianceColor.BLUE ? -1 : 1);
 
-        double spikeMarkX = (spikeMark == HIGH ? -12 : (spikeMark == MIDDLE ? 12 : 36));
-        double spikeMarkAlignmentY = 29 * allianceCoefficient;
-        double spikeMarkPickUpY = 46 * allianceCoefficient;
+        double spikeMarkX = (spikeMark == HIGH ? -7 : (spikeMark == MIDDLE ? 12 : 36));
+        double spikeMarkAlignmentY = 27 * allianceCoefficient;
+        double spikeMarkPickUpYFirst = 48 * allianceCoefficient;
+        double spikeMarkPickUpYLast = 54 * allianceCoefficient;
         double spikeMarkRotation = (Math.PI / 2) * allianceCoefficient;
 
         return new SequentialAction(
-            new MoveToAction(driver, localizer, new FieldPosition(spikeMarkX, spikeMarkAlignmentY, spikeMarkRotation), 1, 1, 5, Math.toRadians(5)),
+            new MoveToAction(driver, localizer, new FieldPosition(spikeMarkX, spikeMarkAlignmentY, spikeMarkRotation), 1, 1, 1.5, Math.toRadians(3)),
             new SimultaneousAction(
-//                new TripleIntakeAction(intakeMotor, storageColorSensor, revolverManipulator),
-                new MoveToAction(driver, localizer, new FieldPosition(spikeMarkX, spikeMarkPickUpY, spikeMarkRotation), 1, 1, 1.5, Math.toRadians(5))
+                new TripleIntakeAction(intakeMotor, storageColorSensor, revolverManipulator),
+                new MoveToAction(driver, localizer, new FieldPosition(spikeMarkX, spikeMarkPickUpYFirst, spikeMarkRotation), 0.3, 1, 1, Math.toRadians(3)),
+                new SleepAction(500),
+                new MoveToAction(driver, localizer, new FieldPosition(spikeMarkX, spikeMarkPickUpYLast, spikeMarkRotation), 0.3, 1, 1, Math.toRadians(3))
             ),
-            moveToLaunchPosition()//,
-//            new TripleLaunchAction(revolverManipulator, launchServo, launchMotor1, launchMotor2)
+            new CustomAction(flywheelManipulator::runFlywheel),
+            moveToLaunchPosition(),
+            new TripleLaunchAction(revolverManipulator, launchServo, flywheelManipulator)
         );
     }
 
     private MoveToAction moveOutOfLaunchZone() {
-        FieldPosition outPosition = new FieldPosition(0, 43, 0);
-
+        FieldPosition outPosition = new FieldPosition(-16, 45, Math.PI);
+        outPosition.y *= (config.alliance == AutoConfiguration.AllianceColor.BLUE ? -1 : 1);
         return new MoveToAction(driver, localizer, outPosition, 1, 1, 5, 8);
     }
 
@@ -186,5 +210,7 @@ public class CompetitionAuto extends OpMode {
         actionThread.loop();
         localizer.loop();
         revolverManipulator.loop();
+
+        telem.setValue("error: " + flywheelManipulator.getError() + ", current: " + launchMotor1.getVelocity());
     }
 }

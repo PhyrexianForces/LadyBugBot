@@ -2,7 +2,7 @@ package codebase.actions;
 
 import com.qualcomm.robotcore.hardware.Servo;
 
-public class SetServoRotationAction implements Action {
+public class SetServoRotationAction extends RunOnceAction {
 
     private final Servo servo;
     private final double position;
@@ -17,15 +17,7 @@ public class SetServoRotationAction implements Action {
     }
 
     @Override
-    public void init() {}
-
-    @Override
-    public boolean isComplete() {
-        return servo.getPosition() == position;
-    }
-
-    @Override
-    public void loop() {
+    public void run() {
         servo.setPosition(position);
     }
 }

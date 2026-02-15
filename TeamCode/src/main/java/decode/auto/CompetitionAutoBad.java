@@ -61,7 +61,7 @@ public class CompetitionAutoBad extends OpMode {
         bl = new Motor(hardwareMap.get(DcMotorEx.class, "bl"));
         br = new Motor(hardwareMap.get(DcMotorEx.class, "br"));
 
-        revolverMotor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_5203_2402_0019_TICKS_PER_ROTATION);
+        revolverMotor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_312RPM_5203_2402_0019_TICKS_PER_ROTATION, 1, false);
 
         launchMotor1 = new Motor(hardwareMap.get(DcMotorEx.class, "launchMotor1"));
         launchMotor2 = new Motor(hardwareMap.get(DcMotorEx.class, "launchMotor2"));
@@ -70,8 +70,8 @@ public class CompetitionAutoBad extends OpMode {
 
         driver = new MecanumDriver(fl, fr, bl, br, Constants.MECANUM_COEFFICIENT_MATRIX);
 
-        revolverManipulator = new RevolverManipulator(revolverMotor);
-        revolverManipulator.init();
+//        revolverManipulator = new RevolverManipulator(revolverMotor);
+//        revolverManipulator.init();
 
         actionThread = new SequentialAction(
             new CustomAction(() -> {
@@ -85,7 +85,7 @@ public class CompetitionAutoBad extends OpMode {
             new CustomAction(() -> {
                 driver.stop();
             }),
-            new TripleLaunchAction(revolverManipulator, launchServo, launchMotor1, launchMotor2),
+//            new TripleLaunchAction(revolverManipulator, launchServo, launchMotor1, launchMotor2, ),
             new CustomAction(() -> {
                 driver.setRelativePower(new MovementVector(-0.5, 0.9 * (config.alliance == AutoConfiguration.AllianceColor.BLUE ? -1 : 1), 0));
             }),

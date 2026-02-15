@@ -19,7 +19,7 @@ public class SigmoidController implements Controller {
 
     @Override
     public double getPower() {
-        return power * ((1 / (1 + Math.pow(Math.E, -errorSupplier.get() * steepness))) - 0.5);
+        return power * 2 * ((1 / (1 + Math.pow(Math.E, -errorSupplier.get() * steepness))) - 0.5);
     }
 
     @Override

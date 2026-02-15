@@ -30,12 +30,12 @@ public class EncoderTestTeleop extends OpMode {
 
     @Override
     public void init() {
-        motor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_5203_2402_0019_TICKS_PER_ROTATION);
+        motor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_312RPM_5203_2402_0019_TICKS_PER_ROTATION, 1, false);
 
         encoderDisplay = telemetry.addData("encoder position", 0);
         PIDPowerDisplay = telemetry.addData("PID power", 0);
 
-        revolverMotor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_5203_2402_0019_TICKS_PER_ROTATION);
+        revolverMotor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_312RPM_5203_2402_0019_TICKS_PER_ROTATION, 1, false);
         gamepad = new Gamepad(gamepad1);
 
         revolverMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

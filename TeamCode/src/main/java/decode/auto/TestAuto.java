@@ -61,19 +61,21 @@ public class TestAuto extends OpMode {
 
     private RevolverManipulator revolverManipulator;
 
+    private MoveToAction moveToAction;  // Store reference for telemetry
+
     @Override
     public void init() {
         driver = new MecanumDriver(
-                new Motor(hardwareMap.get(DcMotorEx.class, "fl")),
-                new Motor(hardwareMap.get(DcMotorEx.class, "fr")),
-                new Motor(hardwareMap.get(DcMotorEx.class, "bl")),
-                new Motor(hardwareMap.get(DcMotorEx.class, "br")),
-                Constants.MECANUM_COEFFICIENT_MATRIX
+                new Motor(hardwareMap.get(DcMotorEx.class, "fl"), Constants.DRIVE_MOTOR_CONFIG),
+                new Motor(hardwareMap.get(DcMotorEx.class, "fr"), Constants.DRIVE_MOTOR_CONFIG),
+                new Motor(hardwareMap.get(DcMotorEx.class, "bl"), Constants.DRIVE_MOTOR_CONFIG),
+                new Motor(hardwareMap.get(DcMotorEx.class, "br"), Constants.DRIVE_MOTOR_CONFIG),
+                Constants.MECANUM_COEFFICIENT_MATRIX,
+                Constants.MAX_WHEEL_VELOCITY
         );
 
-        Motor revolverMotor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_5203_2402_0019_TICKS_PER_ROTATION);
-        revolverManipulator = new RevolverManipulator(revolverMotor);
-        revolverManipulator.init();
+        Motor revolverMotor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_312RPM_5203_2402_0019_TICKS_PER_ROTATION, 1, false);
+//        revolverManipulator = new RevolverManipulator(revolverMotor);
 
         launchMotor1 = new Motor(hardwareMap.get(DcMotorEx.class, "launchMotor1"));
         launchMotor2 = new Motor(hardwareMap.get(DcMotorEx.class, "launchMotor2"));
@@ -87,7 +89,7 @@ public class TestAuto extends OpMode {
 
         do { localizer.loop(); } while (!localizer.isDoneInitializing());
 
-        localizer.setCurrentFieldPosition(new FieldPosition(0, 0, 0));
+        localizer.setCurrentFieldPosition(new FieldPosition(-72 + (14 + 4 * Math.sqrt(2)), 72 - (14 + 4 * Math.sqrt(2)), Math.toRadians(214)));
 
         storageColorSensor = new ColorSensor(hardwareMap.get(RevColorSensorV3.class, "colorSensor"));
 
@@ -95,9 +97,9 @@ public class TestAuto extends OpMode {
 
         limelightManager.getLimelight().start();
 
-        actionThread = new SequentialAction(
-            new MoveToAction(driver, localizer, new FieldPosition(10, 10, Math.toRadians(90)), 1, 1, 2, Math.toRadians(5))
-        );
+        moveToAction = new MoveToAction(driver, localizer, new FieldPosition(0, 0, 0), 1, 1, 2, Math.toRadians(5));
+
+        actionThread = new SequentialAction(moveToAction);
 
         actionThread.init();
 
@@ -108,6 +110,12 @@ public class TestAuto extends OpMode {
     public void loop() {
         actionThread.loop();
         localizer.loop();
-        revolverManipulator.loop();
+//        revolverManipulator.loop();
+
+        // Display error telemetry
+        telemetry.addData("Error X", moveToAction.getErrorX());
+        telemetry.addData("Error Y", moveToAction.getErrorY());
+        telemetry.addData("Error Direction (deg)", Math.toDegrees(moveToAction.getErrorDirection()));
+        telemetry.update();
     }
 }

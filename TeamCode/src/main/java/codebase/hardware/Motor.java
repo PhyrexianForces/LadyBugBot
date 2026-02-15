@@ -1,5 +1,6 @@
 package codebase.hardware;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import codebase.sensors.MotorEncoder;
@@ -14,19 +15,30 @@ public class Motor {
 
     private final MotorEncoder encoder;
 
-    public Motor(DcMotorEx motor, double ticksPerRotation, double wheelDiameter) {
+    private final boolean velocityConfigured;
+
+    public Motor(DcMotorEx motor, double ticksPerRotation, double wheelDiameter, boolean runUsingEncoder) {
         this.motor = motor;
         this.ticksPerRotation = ticksPerRotation;
         this.wheelDiameter = wheelDiameter;
         this.encoder = new MotorEncoder(motor, ticksPerRotation);
+        this.velocityConfigured = true;
+
+        if (runUsingEncoder) {
+            this.motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+    }
+
+    public Motor(DcMotorEx motor, MotorConfig config) {
+        this(motor, config.ticksPerRotation, config.wheelDiameter, true);
     }
 
     public Motor(DcMotorEx motor) {
-        this(motor, 1, 1);
-    }
-
-    public Motor(DcMotorEx motor, double ticksPerRotation) {
-        this(motor, ticksPerRotation, 1);
+        this.motor = motor;
+        this.ticksPerRotation = 1;
+        this.wheelDiameter = 1;
+        this.encoder = new MotorEncoder(motor, 1);
+        this.velocityConfigured = false;
     }
 
     public void setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior behavior) {
@@ -38,6 +50,10 @@ public class Motor {
      * @param velocity The desired velocity measured in inches per second.
      */
     public void setVelocity(double velocity) {
+        if (!velocityConfigured) {
+            throw new IllegalStateException("Cannot set velocity on a Motor that was not configured with velocity parameters. Use the MotorConfig constructor or the full 4-parameter constructor.");
+        }
+
         double ticksPerSecond = velocity * (ticksPerRotation / (wheelDiameter * Math.PI));
 
         motor.setVelocity(ticksPerSecond);
@@ -52,7 +68,15 @@ public class Motor {
      * @return The desired velocity measured in inches per second.
      */
     public double getVelocity() {
+        if (!velocityConfigured) {
+            throw new IllegalStateException("Cannot get velocity on a Motor that was not configured with velocity parameters. Use the MotorConfig constructor or the full 4-parameter constructor.");
+        }
+
         return motor.getVelocity() / (ticksPerRotation / (wheelDiameter * Math.PI));
+    }
+
+    public DcMotorEx getMotor() {
+        return motor;
     }
 
     public void setPower(double power) {

@@ -1,5 +1,7 @@
 package decode.teleop;
 
+import androidx.core.view.TintableBackgroundView;
+
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -33,6 +35,8 @@ public class RevolverTestTeleop extends OpMode {
 
     private RevolverManipulator revolverManipulator;
 
+    private Motor intakeMotor;
+
 
     @Override
     public void init() {
@@ -41,9 +45,10 @@ public class RevolverTestTeleop extends OpMode {
 
         actionThread = new SimultaneousAction();
 
-        Motor revolverMotor = new Motor(hardwareMap.get(DcMotorEx.class, "revolverMotor"), Constants.MotorConstants.GOBILDA_5203_2402_0019_TICKS_PER_ROTATION);
-        revolverManipulator = new RevolverManipulator(revolverMotor);
-        revolverManipulator.init();
+        intakeMotor = new Motor(hardwareMap.get(DcMotorEx.class, "intake"), Constants.INTAKE_MOTOR_CONFIG);
+
+        ServoImpl revolverServo = hardwareMap.get(ServoImpl.class, "revolverServo");
+        revolverManipulator = new RevolverManipulator(revolverServo, intakeMotor);
 
         gamepad.dpadLeft.onPress(() -> {
             actionThread.add(new RotateRevolverAction(0, getRevolverMode(), revolverManipulator), true, true);
@@ -66,5 +71,6 @@ public class RevolverTestTeleop extends OpMode {
     public void loop() {
         gamepad.loop();
         actionThread.loop();
+        revolverManipulator.loop();
     }
 }

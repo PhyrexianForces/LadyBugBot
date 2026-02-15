@@ -11,7 +11,7 @@ import codebase.pathing.Localizer;
 import codebase.vision.LimelightManager;
 import decode.auto.AutoConfiguration;
 
-public class ShooterManipulator {
+public class RotatingTurretManipulator {
     private final Motor shooterRotatorMotor;
     private final Localizer localizer;
     private final LimelightManager limelightManager;
@@ -20,7 +20,7 @@ public class ShooterManipulator {
 
     private double targetRotation = 0;
 
-    public ShooterManipulator(Motor shooterRotaterMotor, Localizer localizer, LimelightManager limelightManager, AutoConfiguration.AllianceColor allianceColor) {
+    public RotatingTurretManipulator(Motor shooterRotaterMotor, Localizer localizer, LimelightManager limelightManager, AutoConfiguration.AllianceColor allianceColor) {
         this.shooterRotatorMotor = shooterRotaterMotor;
         this.localizer = localizer;
         this.limelightManager = limelightManager;

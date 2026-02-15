@@ -14,15 +14,17 @@ import codebase.gamepad.Gamepad;
 public class ServoTestTeleop extends OpMode {
     private Gamepad gamepad;
     private SimultaneousAction actionThread;
-    private ServoImpl launchServo;
+    private ServoImpl servo;
 
-    private double servoPosition = 0;
+    private double servoPosition = 1;
 
     private Telemetry.Item positionDisplay;
 
+    private int selectedIndex = 0;
+
     @Override
     public void init() {
-        launchServo = hardwareMap.get(ServoImpl.class, "launchServo");
+        servo = hardwareMap.get(ServoImpl.class, "revolverServo");
 
         gamepad = new Gamepad(gamepad1);
         actionThread = new SimultaneousAction();
@@ -59,7 +61,7 @@ public class ServoTestTeleop extends OpMode {
         }
         actionThread.add(
                 new SetServoRotationAction(
-                        launchServo,
+                        servo,
                         servoPosition
                 ),
                 true,

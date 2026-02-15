@@ -18,4 +18,6 @@ public abstract class RunOnceAction implements Action {
     }
 
     public void run() {}
+
+    public void init() {}
 }

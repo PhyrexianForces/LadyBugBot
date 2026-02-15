@@ -10,7 +10,7 @@ public class CompetitionTeleopGPP extends BaseCompetitionTeleop {
 
     @Override
     public void init() {
-        super.init();
         RevolverStorageManager.setMotif(LimelightManager.Motif.GPP);
+        super.init();
     }
 }

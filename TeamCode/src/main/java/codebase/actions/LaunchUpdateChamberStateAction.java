@@ -1,6 +1,5 @@
 package codebase.actions;
 
-import codebase.hardware.Motor;
 import codebase.manipulators.RevolverManipulator;
 import decode.RevolverStorageManager;
 
@@ -10,9 +9,6 @@ public class LaunchUpdateChamberStateAction extends RunOnceAction {
     public LaunchUpdateChamberStateAction(RevolverManipulator revolverManipulator) {
         this.revolverManipulator = revolverManipulator;
     }
-
-    @Override
-    public void init() {}
 
     @Override
     public void run() {

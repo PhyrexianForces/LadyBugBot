@@ -1,64 +1,61 @@
 package codebase.actions;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.stream.Stream;
+import java.util.List;
 
 public class SequentialAction implements Action {
 
-    protected ActionNode currentActionNode;
+    private final List<Action> actions;
+    private int currentIndex = 0;
 
     public SequentialAction(Action first, Action... rest) {
-        this.currentActionNode = new ActionNode(Stream.concat(Stream.of(first), Arrays.stream(rest)).toArray(Action[]::new));
+        this.actions = new ArrayList<>();
+        this.actions.add(first);
+        this.actions.addAll(Arrays.asList(rest));
+    }
+
+    public SequentialAction(Action[] actions) {
+        this.actions = new ArrayList<>(Arrays.asList(actions));
     }
 
     @Override
     public void init() {
-        currentActionNode.action.init();
+        if (!actions.isEmpty()) {
+            actions.get(0).init();
+        }
     }
 
     @Override
     public boolean isComplete() {
-        return this.currentActionNode == null;
+        return currentIndex >= actions.size();
     }
 
     @Override
     public void loop() {
-        if (this.currentActionNode == null) {
+        if (isComplete()) {
             return;
         }
 
-        if (this.currentActionNode.action.isComplete()) {
-            this.currentActionNode = this.currentActionNode.next;
+        if (actions.get(currentIndex).isComplete()) {
+            currentIndex++;
 
-            if (this.currentActionNode != null) {
-                this.currentActionNode.action.init();
+            if (!isComplete()) {
+                actions.get(currentIndex).init();
             }
         }
 
-        if (this.currentActionNode == null) {
+        if (isComplete()) {
             return;
         }
 
-        this.currentActionNode.action.loop();
+        actions.get(currentIndex).loop();
     }
 
     public Action getRunningAction() {
-        return currentActionNode.action;
-    }
-}
-
-class ActionNode {
-    public Action action;
-    public ActionNode next;
-
-    public ActionNode(Action[] actions) {
-        this.action = actions[0];
-
-        if (actions.length == 1) {
-            this.next = null;
-            return;
+        if (isComplete()) {
+            return null;
         }
-
-        this.next = new ActionNode(Arrays.copyOfRange(actions, 1, actions.length));
+        return actions.get(currentIndex);
     }
 }
