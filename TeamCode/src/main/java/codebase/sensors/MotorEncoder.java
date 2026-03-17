@@ -1,33 +1,36 @@
 package codebase.sensors;
 
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-
-import codebase.geometry.Angles;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 public class MotorEncoder implements Encoder {
-    private final DcMotorEx encoder;
+    private final DcMotor encoder;
     private final double ticksPerRotation;
+    /**
+     * Diameter of the wheel measured in inches.
+     */
+    private final double wheelDiameter;
 
-    public MotorEncoder(DcMotorEx encoder, double ticksPerRotation) {
+    public MotorEncoder(DcMotor encoder, double ticksPerRotation, double wheelDiameter) {
         this.encoder = encoder;
         this.ticksPerRotation = ticksPerRotation;
-        this.encoder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        this.wheelDiameter = wheelDiameter;
+        this.encoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public int getTicks() {
+    public double getTicks() {
         return this.encoder.getCurrentPosition();
     }
 
     /**
-     * Gets the encoder position in radians.
-     * @return The position of the encoder in radians.
+     * Gets the encoder position in relation to the diameter of the wheel and the ticks per rotation of the encoder.
+     * @return The position of the encoder in inches.
      */
     public double getPosition() {
-        return Angles.normalizeAngle((getTicks() / ticksPerRotation) * 2.0 * Math.PI);
+        return getTicks() / (ticksPerRotation / (wheelDiameter * Math.PI));
     }
 
     public void reset() {
-        this.encoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        this.encoder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        this.encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.encoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 }

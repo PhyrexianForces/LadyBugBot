@@ -5,8 +5,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-import java.lang.reflect.Field;
-
 import codebase.geometry.FieldPosition;
 import codebase.geometry.MovementVector;
 import codebase.hardware.PinpointModule;
@@ -15,24 +13,22 @@ public class PinpointLocalizer implements Localizer {
 
     private final PinpointModule pinpointModule;
 
-    private static FieldPosition lastPosition = new FieldPosition(0, 0, 0);
-
     /**
      *
      * The center of rotation of the robot is the point it rotates around when spinning.
      * It can be found by finding the intersection of the two lines made by diagonal wheel pairs.
      *
      * @param pinpointModule The PinPoint device
-     * @param xPodOffsetFromCenter How far sideways (in mm) from the robot center the X (forward) odometry pod is. Left of the center is a positive number, right of center is a negative number
-     * @param xDirection The direction the X-pod (forward) is oriented
-     * @param yPodOffsetFromCenter How far forwards (in mm) from the tracking point the Y (strafe) odometry pod is. forward of center is a positive number, backwards is a negative number
-     * @param yDirection The direction the y-pod (strafe) is oriented
+     * @param xPodOffsetFromCenter The distance in the x-direction (right is positive) of the forward-backward pod from the robot's center of rotation
+     * @param xDirection The direction the y-pod (which measures delta in the y direction) is oriented
+     * @param yPodOffsetFromCenter The distance in the y-direction (forward is positive) of the right-left pod from the robot's center of rotation
+     * @param yDirection The direction the x-pod (which measures delta in the x direction) is oriented
      * @param encoderResolution The number of ticks per mm of the encoders attached to the PinPoint
      */
     public PinpointLocalizer(PinpointModule pinpointModule, double xPodOffsetFromCenter, PinpointModule.EncoderDirection xDirection, double yPodOffsetFromCenter, PinpointModule.EncoderDirection yDirection, double encoderResolution) {
         this.pinpointModule = pinpointModule;
         this.pinpointModule.setEncoderResolution(encoderResolution);
-        this.pinpointModule.setOffsets(xPodOffsetFromCenter,yPodOffsetFromCenter);
+        this.pinpointModule.setOffsets(-xPodOffsetFromCenter * 25.4,yPodOffsetFromCenter * 25.4);
         this.pinpointModule.setEncoderDirections(xDirection, yDirection);
     }
 
@@ -42,10 +38,10 @@ public class PinpointLocalizer implements Localizer {
      * It can be found by finding the intersection of the two lines made by diagonal wheel pairs.
      *
      * @param pinpointModule The PinPoint device
-     * @param xPodOffsetFromCenter How far left (in mm) from the robot center the X (forward) odometry pod is. Left of the center is a positive number, right of center is a negative number
-     * @param xDirection The direction the X-pod (forward) is oriented
-     * @param yPodOffsetFromCenter How far forwards (in mm) from the tracking point the Y (strafe) odometry pod is. forward of center is a positive number, backwards is a negative number
-     * @param yDirection The direction the y-pod (strafe) is oriented
+     * @param xPodOffsetFromCenter The distance in the x-direction (right is positive) of the forward-backward pod from the robot's center of rotation
+     * @param xDirection The direction the y-pod (which measures delta in the y direction) is oriented
+     * @param yPodOffsetFromCenter The distance in the y-direction (forward is positive) of the right-left pod from the robot's center of rotation
+     * @param yDirection The direction the x-pod (which measures delta in the x direction) is oriented
      * @param pods The type of pods you are using
      *
      *             THIS IS NOT DONE // REVISIT X AND Y AS WE SWITCHED TO FTC FIELD COORDINATE SYSTEM
@@ -53,7 +49,7 @@ public class PinpointLocalizer implements Localizer {
     public PinpointLocalizer(PinpointModule pinpointModule, double xPodOffsetFromCenter, PinpointModule.EncoderDirection xDirection, double yPodOffsetFromCenter, PinpointModule.EncoderDirection yDirection, PinpointModule.GoBildaOdometryPods pods) {
         this.pinpointModule = pinpointModule;
         this.pinpointModule.setEncoderResolution(pods);
-        this.pinpointModule.setOffsets(xPodOffsetFromCenter,yPodOffsetFromCenter);
+        this.pinpointModule.setOffsets(-xPodOffsetFromCenter * 25.4,yPodOffsetFromCenter * 25.4);
         this.pinpointModule.setEncoderDirections(xDirection,yDirection);
     }
 
@@ -68,9 +64,9 @@ public class PinpointLocalizer implements Localizer {
     }
 
     @Override
-    public void init() {
+    public void init(FieldPosition initialPosition) {
         this.pinpointModule.resetPosAndIMU();
-        PinpointLocalizer.lastPosition = getCurrentPosition();
+        this.setCurrentFieldPosition(initialPosition);
     }
 
     public MovementVector getVelocity() {
@@ -90,20 +86,11 @@ public class PinpointLocalizer implements Localizer {
     public void loop() {
         try {
             pinpointModule.update();
-            PinpointLocalizer.lastPosition = getCurrentPosition();
         } catch (LynxNackException e) {
         }
     }
 
     public boolean isDoneInitializing() {
         return pinpointModule.getDeviceStatus() == PinpointModule.DeviceStatus.READY;
-    }
-
-    public static FieldPosition getLastPosition() {
-        return PinpointLocalizer.lastPosition;
-    }
-
-    public static void resetLastPosition() {
-        PinpointLocalizer.lastPosition = new FieldPosition(0, 0, 0);
     }
 }

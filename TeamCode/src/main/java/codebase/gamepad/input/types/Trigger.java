@@ -17,7 +17,7 @@ public class Trigger implements GInput, GIsPressed, GIsToggled, GWhileDown<Trigg
     /**
      * The minimum value for the trigger to be considered down
      */
-    private static final float PRESS_THRESHOLD = 0.5f;
+    private static final float PRESS_THRESHOLD = 0;
     private final Supplier<Float> valueSupplier;
     private final Gamepad gamepad;
     private Runnable onPress, onRelease, whileDown, onToggleOn, onToggleOff;
@@ -62,10 +62,6 @@ public class Trigger implements GInput, GIsPressed, GIsToggled, GWhileDown<Trigg
         }
 
         this.wasDownLast = isPressed;
-    }
-
-    public double getValue() {
-        return this.valueSupplier.get();
     }
 
     @Override

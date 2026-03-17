@@ -42,13 +42,6 @@ public class MecanumCoefficientMatrix {
     }
 
     /**
-     * @param baseCoefficients Coefficients applied last, after the vertical, horizontal, or rotational coefficients are applied.
-     */
-    public MecanumCoefficientMatrix(MecanumCoefficientSet baseCoefficients) {
-        this(baseCoefficients, -1);
-    }
-
-    /**
      * Calculates the motor coefficients that are then passed to the motors for power-based control.
      *
      * @param verticalPower -1 is backward full speed, 1 is forward full speed.
@@ -73,11 +66,7 @@ public class MecanumCoefficientMatrix {
      * @param rotationalVelocity Counterclockwise/clockwise angular velocity in radians per second.
      * @return The coefficients that have been multiplied by the velocities (resulting in wheel velocities).
      */
-    public MecanumCoefficientSet calculateCoefficientsWithVelocity(double verticalVelocity, double horizontalVelocity, double rotationalVelocity) throws IllegalStateException {
-        if (rotationalRadius == -1) {
-            throw new IllegalStateException("Can not find coefficients with velocity without first setting rotationalRadius");
-        }
-
+    public MecanumCoefficientSet calculateCoefficientsWithVelocity(double verticalVelocity, double horizontalVelocity, double rotationalVelocity) {
         return new MecanumCoefficientSet(
                 baseCoefficients.fl * (verticalVelocity * vertical.fl + horizontalVelocity * horizontal.fl + rotationalVelocity * rotational.fl * rotationalRadius),
                 baseCoefficients.fr * (verticalVelocity * vertical.fr + horizontalVelocity * horizontal.fr + rotationalVelocity * rotational.fr * rotationalRadius),

@@ -54,25 +54,6 @@ public class MecanumDriver {
     }
 
     /**
-     * Constructs a MecanumDriver with the specified motors, coefficient matrix, and maximum wheel velocity.
-     *
-     * @param fl Front-left motor.
-     * @param fr Front-right motor.
-     * @param bl Back-left motor.
-     * @param br Back-right motor.
-     * @param mecanumDriveCoefficients Coefficient matrix for drive adjustments.
-     */
-    public MecanumDriver(
-            Motor fl,
-            Motor fr,
-            Motor bl,
-            Motor br,
-            MecanumCoefficientMatrix mecanumDriveCoefficients
-    ) {
-        this(fl, fr, bl, br, mecanumDriveCoefficients, -1);
-    }
-
-    /**
      * Sets the velocities for all motors.
      *
      * @param fl Velocity for front-left motor in inches per second.
@@ -129,11 +110,7 @@ public class MecanumDriver {
      *
      * @param velocity MovementVector containing velocity inputs (inches/second or radians/second).
      */
-    public void setRelativeVelocity(MovementVector velocity) throws IllegalStateException {
-        if (maxWheelVelocity == -1) {
-            throw new IllegalStateException("Can not set velocity without first setting maxWheelVelocity");
-        }
-
+    public void setRelativeVelocity(MovementVector velocity) {
         MecanumCoefficientSet coefficientSet = this.mecanumDriveCoefficients.calculateCoefficientsWithVelocity(
                 velocity.getVerticalVelocity(),
                 velocity.getHorizontalVelocity(),
@@ -175,11 +152,7 @@ public class MecanumDriver {
      * @param position Current field position including direction.
      * @param velocity MovementVector containing absolute velocity inputs (inches/second or radians/second). (vertical - x, horizontal - y)
      */
-    public void setAbsoluteVelocity(FieldPosition position, MovementVector velocity) throws IllegalStateException {
-        if (maxWheelVelocity == -1) {
-            throw new IllegalStateException("Can not set velocity without first setting maxWheelVelocity");
-        }
-
+    public void setAbsoluteVelocity(FieldPosition position, MovementVector velocity) {
         double direction = position.direction;
 
         double relativeVerticalVelocity = Math.cos(direction) * velocity.getVerticalVelocity() + Math.sin(direction) * velocity.getHorizontalVelocity();

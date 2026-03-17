@@ -41,38 +41,25 @@ public class SimultaneousAction implements Action {
 
     @Override
     public void loop() {
-        ArrayList<Action> toDelete = new ArrayList<>();
-
         for (Action action : actions) {
             if (!action.isComplete()) {
                 action.loop();
-            } else {
-                toDelete.add(action);
             }
-        }
-
-        for (Action action : toDelete) {
-            actions.remove(action);
         }
     }
 
-    public void removeActionsOfType(Class<? extends Action> type) {
-        ArrayList<Action> toDelete = new ArrayList<>();
+    public void add(@NonNull Action action, boolean init) {
+        String actionName = action.getClass().getName();
 
-        for (Action action : actions) {
-            if (action.getClass().equals(type)) {
-                toDelete.add(action);
+        Action toDelete = null;
+
+        for (Action a : actions) {
+            if (a.getClass().getName().equals(actionName) && !a.isComplete()) {
+                toDelete = a;
             }
         }
-
-        for (Action action : toDelete) {
-            actions.remove(action);
-        }
-    }
-
-    public void add(@NonNull Action action, boolean init, boolean removeOld) {
-        if (removeOld) {
-            removeActionsOfType(action.getClass());
+        if (toDelete != null) {
+            actions.remove(toDelete);
         }
 
         actions.add(action);
@@ -80,10 +67,6 @@ public class SimultaneousAction implements Action {
         if (init) {
             action.init();
         }
-    }
-
-    public void add(@NonNull Action action, boolean init) {
-        this.add(action, init, false);
     }
 
     public ArrayList<Action> getActions() {
