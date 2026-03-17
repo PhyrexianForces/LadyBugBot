@@ -16,6 +16,14 @@ public class Motor {
         this.wheelDiameter = wheelDiameter;
     }
 
+    public Motor(DcMotorEx motor) {
+        this(motor, 1, 1);
+    }
+
+    public void setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior behavior) {
+        this.motor.setZeroPowerBehavior(behavior);
+    }
+
     /**
      * Sets the velocity in relation to the diameter of the wheel and the ticks per rotation of the motor.
      * @param velocity The desired velocity measured in inches per second.

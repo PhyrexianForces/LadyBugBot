@@ -43,8 +43,9 @@ public class Gamepad implements Loop {
         this.dpadUp = new Button(this, () -> gamepad.dpad_up);
         this.dpadDown = new Button(this, () -> gamepad.dpad_down);
 
-        this.leftJoystick = new Joystick(this, () -> gamepad.left_stick_x, () -> gamepad.left_stick_y);
-        this.rightJoystick = new Joystick(this, () -> gamepad.right_stick_x, () -> gamepad.right_stick_y);
+        // y values from the robotcore gamepad class are inverted from what is expected: + is up, - is down. This corrects it to + is up, - is down
+        this.leftJoystick = new Joystick(this, () -> gamepad.left_stick_x, () -> -gamepad.left_stick_y);
+        this.rightJoystick = new Joystick(this, () -> gamepad.right_stick_x, () -> -gamepad.right_stick_y);
 
         this.leftJoystickButton = new Button(this, () -> gamepad.left_stick_button);
         this.rightJoystickButton = new Button(this, () -> gamepad.right_stick_button);

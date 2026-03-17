@@ -19,6 +19,10 @@ public class SimultaneousAction implements Action {
         }
     }
 
+    public SimultaneousAction() {
+        this.actions = new ArrayList<>();
+    }
+
     @Override
     public void init() {
         for (Action action : actions) {
@@ -48,11 +52,17 @@ public class SimultaneousAction implements Action {
     public void add(@NonNull Action action, boolean init) {
         String actionName = action.getClass().getName();
 
+        Action toDelete = null;
+
         for (Action a : actions) {
-            if (a.getClass().getName().equals(actionName)) {
-                throw new IllegalArgumentException("You can't add multiple of the same class of Action to SimultaneousAction.");
+            if (a.getClass().getName().equals(actionName) && !a.isComplete()) {
+                toDelete = a;
             }
         }
+        if (toDelete != null) {
+            actions.remove(toDelete);
+        }
+
         actions.add(action);
 
         if (init) {
@@ -60,7 +70,7 @@ public class SimultaneousAction implements Action {
         }
     }
 
-    public List<Action> getActions() {
+    public ArrayList<Action> getActions() {
         return actions;
     }
 }

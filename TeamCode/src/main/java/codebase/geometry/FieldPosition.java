@@ -1,6 +1,8 @@
 package codebase.geometry;
 
 
+import android.annotation.SuppressLint;
+
 import androidx.annotation.NonNull;
 
 public class FieldPosition extends Point {
@@ -16,8 +18,9 @@ public class FieldPosition extends Point {
     }
 
     @NonNull
+    @SuppressLint("DefaultLocale")
     @Override
     public String toString() {
-        return String.format("(%s, %s), facing %s", this.x, this.y, this.direction);
+        return String.format("(%f, %f, %f) (in, in, rad)", x, y, direction);
     }
 }

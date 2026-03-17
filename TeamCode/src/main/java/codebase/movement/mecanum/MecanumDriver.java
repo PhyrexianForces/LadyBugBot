@@ -1,5 +1,7 @@
 package codebase.movement.mecanum;
 
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+
 import codebase.geometry.FieldPosition;
 import codebase.geometry.MovementVector;
 import codebase.hardware.Motor;
@@ -44,6 +46,11 @@ public class MecanumDriver {
         this.br = br;
         this.mecanumDriveCoefficients = mecanumDriveCoefficients;
         this.maxWheelVelocity = maxWheelVelocity;
+
+        fl.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        fr.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        bl.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        br.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
     }
 
     /**
@@ -122,13 +129,13 @@ public class MecanumDriver {
      * Sets absolute power inputs relative to the field, transforming them to robot-relative powers.
      *
      * @param position Current field position including direction.
-     * @param powerInput MovementVector containing absolute power inputs (-1 to 1).
+     * @param powerInput MovementVector containing absolute power inputs (-1 to 1). (vertical - x, horizontal - y)
      */
     public void setAbsolutePower(FieldPosition position, MovementVector powerInput) {
         double direction = position.direction;
 
-        double relativeVerticalPower = Math.cos(direction) * powerInput.getHorizontalVelocity() + Math.sin(direction) * powerInput.getVerticalVelocity();
-        double relativeHorizontalPower = Math.sin(direction) * powerInput.getHorizontalVelocity() - Math.cos(direction) * powerInput.getVerticalVelocity();
+        double relativeVerticalPower = Math.cos(direction) * powerInput.getVerticalVelocity() + Math.sin(direction) * powerInput.getHorizontalVelocity();
+        double relativeHorizontalPower = Math.sin(direction) * powerInput.getVerticalVelocity() - Math.cos(direction) * powerInput.getHorizontalVelocity();
 
         MovementVector relativePower = new MovementVector(
                 relativeVerticalPower,
@@ -143,13 +150,13 @@ public class MecanumDriver {
      * Sets absolute velocities relative to the field, transforming them to robot-relative velocities.
      *
      * @param position Current field position including direction.
-     * @param velocity MovementVector containing absolute velocity inputs (inches/second or radians/second).
+     * @param velocity MovementVector containing absolute velocity inputs (inches/second or radians/second). (vertical - x, horizontal - y)
      */
     public void setAbsoluteVelocity(FieldPosition position, MovementVector velocity) {
         double direction = position.direction;
 
-        double relativeVerticalVelocity = Math.cos(direction) * velocity.getHorizontalVelocity() + Math.sin(direction) * velocity.getVerticalVelocity();
-        double relativeHorizontalVelocity = Math.sin(direction) * velocity.getHorizontalVelocity() - Math.cos(direction) * velocity.getVerticalVelocity();
+        double relativeVerticalVelocity = Math.cos(direction) * velocity.getVerticalVelocity() + Math.sin(direction) * velocity.getHorizontalVelocity();
+        double relativeHorizontalVelocity = Math.sin(direction) * velocity.getVerticalVelocity() - Math.cos(direction) * velocity.getHorizontalVelocity();
 
         MovementVector relativeVelocity = new MovementVector(
                 relativeVerticalVelocity,

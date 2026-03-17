@@ -1,5 +1,9 @@
 package codebase.movement.mecanum;
 
+import android.annotation.SuppressLint;
+
+import androidx.annotation.NonNull;
+
 public class MecanumCoefficientSet {
     public double fl;
     public double fr;
@@ -34,5 +38,12 @@ public class MecanumCoefficientSet {
                 this.bl * scale,
                 this.br * scale
         );
+    }
+
+    @SuppressLint("DefaultLocale")
+    @NonNull
+    @Override
+    public String toString() {
+        return String.format("(%f, %f, %f, %f)", fl, fr, bl, br);
     }
 }

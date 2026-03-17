@@ -1,5 +1,8 @@
 package codebase.actions;
 
+import static codebase.Constants.DIRECTION_PID_COEFFICIENTS;
+import static codebase.Constants.MOVEMENT_PID_COEFFICIENTS;
+
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
 import codebase.controllers.PIDController;
@@ -10,9 +13,6 @@ import codebase.movement.mecanum.MecanumDriver;
 import codebase.pathing.Localizer;
 
 public class MoveToAction implements Action {
-
-    private static final PIDCoefficients MOVEMENT_PID_COEFFICIENTS = new PIDCoefficients(1, 0, 0);
-    private static final PIDCoefficients DIRECTION_PID_COEFFICIENTS = new PIDCoefficients(1, 0, 0);
     private final MecanumDriver driver;
     private final Localizer localizer;
 
@@ -54,9 +54,7 @@ public class MoveToAction implements Action {
     }
 
     @Override
-    public void init() {
-
-    }
+    public void init() {}
 
     @Override
     public void loop() {
@@ -65,11 +63,11 @@ public class MoveToAction implements Action {
         double powerRotational = directionPID.getPower();
 
         MovementVector vector = new MovementVector(
-                movementSpeed * powerY,
                 movementSpeed * powerX,
+                movementSpeed * powerY,
                 rotationalSpeed * powerRotational);
 
-        this.driver.setAbsoluteVelocity(localizer.getCurrentPosition(), vector);
+        this.driver.setAbsolutePower(localizer.getCurrentPosition(), vector);
     }
 
     @Override
@@ -77,6 +75,17 @@ public class MoveToAction implements Action {
         double distanceError = Math.sqrt(Math.pow(localizer.getCurrentPosition().x - destination.x, 2) + Math.pow(localizer.getCurrentPosition().y - destination.y, 2));
         double rotationalError = Angles.angleDifference(localizer.getCurrentPosition().direction, destination.direction);
 
-        return (distanceError <= maxDistanceError) && (rotationalError <= maxRotationalError);
+        if ((distanceError <= maxDistanceError) && (rotationalError <= maxRotationalError)) {
+            driver.stop();
+            return true;
+        }
+
+        return false;
+    }
+
+    public void setPIDCoefficients(PIDCoefficients movementCoefficients, PIDCoefficients rotationCoefficients) {
+        this.xPID.setCoefficients(movementCoefficients);
+        this.yPID.setCoefficients(movementCoefficients);
+        this.directionPID.setCoefficients(rotationCoefficients);
     }
 }
