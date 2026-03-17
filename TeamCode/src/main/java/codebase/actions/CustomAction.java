@@ -13,6 +13,4 @@ public class CustomAction extends RunOnceAction {
         runnable.run();
     }
 
-    @Override
-    public void init() {}
 }

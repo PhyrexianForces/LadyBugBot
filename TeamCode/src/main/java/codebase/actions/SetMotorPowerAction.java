@@ -13,9 +13,6 @@ public class SetMotorPowerAction extends RunOnceAction {
     }
 
     @Override
-    public void init() {}
-
-    @Override
     public void run() {
         motor.setPower(power);
     }
