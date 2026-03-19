@@ -85,6 +85,6 @@ public class rileyiscool extends OpMode{
      wheelRight.setPower(0);
      wheelLeft.setPower(0);
      loaderServo.setPower(0);
-     }  
+     }
   }
 }
