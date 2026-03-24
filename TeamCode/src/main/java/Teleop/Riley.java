@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import java.lang.Math;
 
 @Teleop
-public class rileyiscool extends OpMode{
+public class Riley extends OpMode{
   private DcMotorEx frontLeft, frontRight, backLeft, backRight;
   private DcMotorEx flywheelRight, flywheelLeft;
   private CRServo leaderServo;
