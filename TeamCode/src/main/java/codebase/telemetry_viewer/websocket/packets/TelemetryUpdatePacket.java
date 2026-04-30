@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 import codebase.actions.Action;
-import codebase.actions.ActionNode;
+//import codebase.actions.ActionNode;
 import codebase.actions.ActionParameter;
 import codebase.actions.SequentialAction;
 import codebase.actions.SimultaneousAction;
@@ -91,9 +91,9 @@ public class TelemetryUpdatePacket extends TelemetryPacket {
             } else if (action instanceof  SequentialAction) {
                 List<Action> actions = new ArrayList<>();
 
-                for(ActionNode node = ((SequentialAction) action).getCurrentActionNode(); node != null; node = node.next) {
-                    actions.add(node.action);
-                }
+               // for(ActionNode node = ((SequentialAction) action).getCurrentActionNode(); node != null; node = node.next) {
+              //      actions.add(node.action);
+             //   }
 
                 return actions;
             }

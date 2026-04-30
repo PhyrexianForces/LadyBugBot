@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 
 import java.lang.Math;
 
-@Teleop
+@TeleOp
 public class Riley extends OpMode{
   private DcMotorEx frontLeft, frontRight, backLeft, backRight;
 
@@ -37,10 +37,10 @@ public class Riley extends OpMode{
     double frPower = (y - x - rx) / maxValue;
     double brPower = (y + x - rx) / maxValue;
 
-    frontLeft.setVelocity(flPower * MTPS);
-    frontRight.setVelocity(flPower * MTPS);
-    backLeft.setVelocity(flPower * MTPS);
-    backRight.setVelocity(flPower * MTPS);
+    frontLeft.setVelocity(0.5*(flPower * MTPS));
+    frontRight.setVelocity(0.5*(flPower * MTPS));
+    backLeft.setVelocity(0.5*(flPower * MTPS));
+    backRight.setVelocity(0.5*(flPower * MTPS));
   }
 
 
@@ -51,6 +51,6 @@ public class Riley extends OpMode{
     double y = gamepad1.left_stick_y;
     double x = gamepad1.left_stick_x;
     double rx = gamepad1.right_stick_x;
-    driveOmni(y, x, rx);
+    driveOmni(x, y, rx);
   }
 }
