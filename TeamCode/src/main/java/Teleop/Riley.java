@@ -44,9 +44,9 @@ public class Riley extends OpMode{
     double brPower = (y + x - rx) / maxValue;
 
     frontLeft.setVelocity(0.5*(flPower * MTPS));
-    frontRight.setVelocity(0.5*(flPower * MTPS));
-    backLeft.setVelocity(0.5*(flPower * MTPS));
-    backRight.setVelocity(0.5*(flPower * MTPS));
+    frontRight.setVelocity(0.5*(frPower * MTPS));
+    backLeft.setVelocity(0.5*(blPower * MTPS));
+    backRight.setVelocity(0.5*(brPower * MTPS));
   }
 
 
@@ -54,9 +54,9 @@ public class Riley extends OpMode{
   @Override
   public void loop() {
     //Determines the inputs of the gamepad
-    double y = gamepad1.left_stick_y;
+    double y = -gamepad1.left_stick_y;
     double x = gamepad1.left_stick_x;
     double rx = gamepad1.right_stick_x;
-    driveOmni(x, y, rx);
+    driveOmni(y, rx, x);
   }
 }
